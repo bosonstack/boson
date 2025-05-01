@@ -1,0 +1,10 @@
+# Enforce LF endings for common text-based file types
+*.sh       text eol=lf
+*.py       text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.md       text eol=lf
+*.json     text eol=lf
+*.txt      text eol=lf
+*.toml     text eol=lf
+boson      text eol=lf

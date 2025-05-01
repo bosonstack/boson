@@ -1,0 +1,25 @@
+FROM kernel:latest AS base
+
+FROM base
+
+COPY ./ ./
+
+# Configure Jupyter
+ARG WORKSPACE_NAME
+RUN echo "{\"appName\": \"Boson (${WORKSPACE_NAME})\"}" > /usr/local/share/jupyter/lab/settings/page_config.json
+
+COPY --from=base /root/.jupyter/jupyter_notebook_config.py /root/.jupyter/jupyter_notebook_config.py
+
+RUN jupyter lab clean
+RUN jupyter lab build --name "Boson (${WORKSPACE_NAME})"
+
+# Install workspace dependencies
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-root
+RUN poetry run python -m ipykernel install --user
+
+# Mount storage
+COPY --from=base /root/.mount-cloud-storage.sh /root/.mount-cloud-storage.sh
+RUN chmod +x /bin/fusermount
+
+CMD ["bash"]

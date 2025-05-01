@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "example-instacart"
+version = "0.1.0"
+description = "Example - Instacart"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+seaborn = "^0.13.2"
+pandas = "^2.2.2"
+xgboost = "^3.0.0"
+scikit-learn = "^1.6.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

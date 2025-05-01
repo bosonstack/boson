@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  storage:
+    volumes:
+      - example_instacart_storage_data:/usr/src/app/localData
+      - example_instacart_storage_meta:/usr/src/app/localMetadata
+
+  workspace:
+    build:
+      context: ./workspaces/example-instacart
+      args:
+        WORKSPACE_NAME: "Example - Instacart"
+    volumes:
+      - example_instacart_aim_data:/aim-repo
+
+  aim-init:
+    volumes:
+      - example_instacart_aim_data:/repo
+
+  aim-ui:
+    volumes:
+      - example_instacart_aim_data:/repo
+
+volumes:
+  example_instacart_storage_data:
+  example_instacart_storage_meta:
+  example_instacart_aim_data:

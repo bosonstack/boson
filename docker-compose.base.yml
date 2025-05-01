@@ -1,0 +1,103 @@
+version: "3.8"
+
+services:
+  storage:
+    image: zenko/cloudserver:latest
+    environment:
+      - SCALITY_ACCESS_KEY_ID=${STORAGE_USER}
+      - SCALITY_SECRET_ACCESS_KEY=${STORAGE_PASSWORD}
+      - S3DATA=multiple
+      - REMOTE_MANAGEMENT_DISABLE=true
+    volumes:
+     - ./storage/config.json:/usr/src/app/config.json:ro
+
+  storage-init:
+    image: amazon/aws-cli
+    depends_on:
+      - storage
+    entrypoint: >
+      /bin/sh -c "
+        sleep 5;
+        aws --endpoint-url http://storage:8000 s3api create-bucket --bucket metastore;
+        aws --endpoint-url http://storage:8000 s3api put-bucket-versioning --bucket metastore --versioning-configuration Status=Enabled;
+      "
+    environment:
+      AWS_ACCESS_KEY_ID: ${STORAGE_USER}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_PASSWORD}
+
+  kernel:
+    build:
+      context: ./kernel
+    image: kernel:latest
+    working_dir: /kernel
+
+  workspace:
+    depends_on:
+      kernel:
+        condition: service_completed_successfully
+      storage-init:
+        condition: service_completed_successfully
+    build:
+      dockerfile: ../../Dockerfile.workspace
+    environment:
+      STORAGE_USER: ${STORAGE_USER}
+      STORAGE_PASSWORD: ${STORAGE_PASSWORD}
+      STORAGE_PORT: 8000
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - ./workspace-entrypoint.sh:/root/.workspace-entrypoint.sh
+    entrypoint:
+      [/root/.workspace-entrypoint.sh]
+
+  aim-init:
+    image: aimstack/aim
+    entrypoint: ["/bin/sh", "-c", 
+      'if [ ! -d "/repo/.aim" ]; then aim init --repo /repo; else echo "AIM repo already exists at /repo, skipping init"; fi'
+    ]
+
+  aim-ui:
+    image: aimstack/aim
+    depends_on:
+      aim-init:
+        condition: service_completed_successfully
+    entrypoint: [
+      "aim", "up", "--repo", 
+      "/repo", "--host", "0.0.0.0", "--port", 
+      "43800", "--base-path", "/aim"
+    ]
+
+  delta-explorer:
+    build:
+      context: ./delta-explorer
+    depends_on:
+      - storage-init
+    environment:
+      STORAGE_USER: ${STORAGE_USER}
+      STORAGE_PASSWORD: ${STORAGE_PASSWORD}
+      STORAGE_PORT: 8000
+    command:
+      - poetry 
+      - run 
+      - streamlit 
+      - run 
+      - app.py 
+      - --server.port=8501 
+      - --server.address=0.0.0.0 
+      - --server.enableCORS=false 
+      - --server.enableXsrfProtection=false 
+      - --server.baseUrlPath=/delta/
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "${BOSON_PORT}:80"
+    depends_on:
+      - workspace
+      - aim-ui
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
