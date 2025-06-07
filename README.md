@@ -9,6 +9,8 @@
   </br>
 </div>
 
+<br>
+
 **FlintML** is the all-in-one, self-hosted ML platform for real-world teams. Simple, flexible, fast to deploy, and built for people solving actual problems—not chasing hype.
 
 
