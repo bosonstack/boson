@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    /* ---------------------------------------------
+       Color Palette & Typography
+    --------------------------------------------- */
+    :root {
+      --primary-color: #2f4858;
+      --accent-color: #cf051c;
+      --bg-color: #ffffff;
+      --border-color: #ddd;
+      --hover-bg: #f5f5f5;
+      --font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      --font-size: 14px;
+      --radius: 4px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 12px;
+      --spacing-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: var(--spacing-lg);
+      font-family: var(--font-family);
+      font-size: var(--font-size);
+      background-color: var(--bg-color);
+      color: var(--primary-color);
+    }
+
+    button {
+      font-family: inherit;
+      font-size: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: none;
+      border-radius: var(--radius);
+      transition: background-color 0.2s;
+      background-color: var(--accent-color);
+      color: #ffffff;
+    }
+
+    button svg {
+      width: 16px;
+      height: 16px;
+      fill: #ffffff;
+    }
+
+    /* Copy button */
+    .copy-button {
+      background: transparent;
+      border: none;
+      padding: var(--spacing-xs);
+      margin-left: var(--spacing-sm);
+      cursor: pointer;
+      transition: opacity 0.1s;
+    }
+    .copy-button svg {
+      fill: var(--primary-color);
+    }
+    .copy-button:hover svg {
+      fill: var(--accent-color);
+    }
+    .copy-button:active {
+      opacity: 0.5;
+    }
+
+    /* ---------------------------------------------
+       Controls: Search + Type Filter + Tag Filters
+    --------------------------------------------- */
+    #controls {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    /* Top row: search */
+    #search-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    #search-input {
+      flex: 1;
+      padding: var(--spacing-sm);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #search-input:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(207, 5, 28, 0.2);
+    }
+
+    /* Secondary controls: type filter + tag filters + actions */
+    #secondary-controls {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    #filter-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      align-items: center;
+    }
+
+    /* Type filter select */
+    #type-filter {
+      padding: var(--spacing-sm);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      background-color: #fff;
+      color: var(--primary-color);
+      font-size: var(--font-size);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #type-filter:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(207, 5, 28, 0.2);
+    }
+
+    #add-tag-filter,
+    #refresh-button {
+      background-color: var(--accent-color);
+      color: #ffffff;
+    }
+
+    #toggle-expand {
+      background-color: var(--primary-color);
+      color: #ffffff;
+    }
+    #toggle-expand:hover {
+      background-color: #253d48;
+    }
+
+    #tag-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+    }
+
+    .tag-filter-row {
+      display: flex;
+      gap: var(--spacing-xs);
+      align-items: center;
+      background-color: #fafafa;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .tag-filter-row select {
+      font-size: var(--font-size);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .tag-filter-row select:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(207, 5, 28, 0.2);
+    }
+
+    .tag-filter-row button.remove-filter {
+      background: none;
+      border: none;
+      color: var(--accent-color);
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .tag-filter-row button.remove-filter:hover {
+      color: #820312;
+    }
+
+    /* ---------------------------------------------
+       Catalog List (flex layout)
+    --------------------------------------------- */
+    #catalog-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .catalog-item {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .catalog-item:hover {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .catalog-item-header {
+      display: flex;
+      align-items: center;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background-color: #f9f9f9;
+      cursor: pointer;
+      user-select: none;
+    }
+    .catalog-item-header:hover {
+      background-color: var(--hover-bg);
+    }
+
+    .icon-cell {
+      flex: 0 0 24px;
+      margin-right: var(--spacing-sm);
+      color: var(--primary-color);
+    }
+
+    .text-cell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .catalog-name {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--primary-color);
+    }
+    .catalog-updated {
+      font-size: 12px;
+      color: var(--primary-color);
+    }
+
+    .catalog-details {
+      display: none;
+      flex-direction: column;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background-color: #ffffff;
+    }
+    .catalog-details.visible {
+      display: flex;
+    }
+
+    .details-row {
+      margin-bottom: var(--spacing-md);
+    }
+    .details-header {
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+      color: var(--primary-color);
+    }
+
+    /* URI value: allow horizontal scroll */
+    .uri-value {
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      background-color: #fafafa;
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--primary-color);
+    }
+
+    .details-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+    }
+    .details-tag {
+      background-color: var(--accent-color);
+      color: #ffffff;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius);
+      font-size: 12px;
+    }
+
+    .details-schema {
+      margin-top: var(--spacing-sm);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+    .schema-row {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      background-color: #fafafa;
+    }
+    .schema-col-name {
+      font-weight: 500;
+      color: var(--primary-color);
+    }
+    .schema-col-type {
+      font-size: 12px;
+      color: var(--primary-color);
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <!-- Top row: Search box -->
+    <div id="search-row">
+      <input type="text" id="search-input" placeholder="Search catalog..." />
+    </div>
+
+    <!-- Secondary controls: Type filter + Tag filter + Actions -->
+    <div id="secondary-controls">
+      <div id="filter-actions">
+        <!-- Type filter dropdown -->
+        <select id="type-filter" title="Filter by type">
+          <option value="all">All Types</option>
+          <option value="table">Table</option>
+          <option value="object">Object</option>
+        </select>
+
+        <!-- + Tag Filter button -->
+        <button id="add-tag-filter" title="+ Tag Filter">
+          ＋ <span style="margin-left:4px; font-size:12px;">Tag Filter</span>
+        </button>
+
+        <!-- Refresh button -->
+        <button id="refresh-button" title="Refresh catalog">
+          <svg viewBox="0 0 24 24">
+            <!-- Circular arrow refresh icon -->
+            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+          </svg>
+        </button>
+
+        <!-- Expand/Collapse toggle -->
+        <button id="toggle-expand" title="Expand All">
+          <svg id="toggle-icon" viewBox="0 0 24 24">
+            <!-- Down arrow (expand) -->
+            <path d="M12 16.5l-7-7 1.4-1.4L12 13.7l5.6-5.6 1.4 1.4z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Tag filters appear here -->
+      <div id="tag-filters"></div>
+    </div>
+  </div>
+
+  <!-- Catalog list -->
+  <div id="catalog-list">
+    <!-- JavaScript will populate .catalog-item blocks here -->
+  </div>
+
+  <script>
+    //
+    // State
+    //
+    let allItems = [];
+    let tagKeyToValues = {};
+    let tagFilters = [];      // [{ id, key, value }]
+    let searchQuery = "";
+    let typeFilter = "all";   // "all" | "table" | "object"
+    let nextFilterId = 1;
+    const expandedUris = new Set();
+    let currentFiltered = [];
+
+    // SVG paths for expand/collapse toggle
+    const ICON_EXPAND = `<path d="M12 16.5l-7-7 1.4-1.4L12 13.7l5.6-5.6 1.4 1.4z"/>`;   // down arrow
+    const ICON_COLLAPSE = `<path d="M12 7.5l7 7-1.4 1.4L12 10.3l-5.6 5.6-1.4-1.4z"/>`; // up arrow
+
+    // SVG icons for item types
+    const ICONS = {
+      table: `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0.5" y="0.5" width="6.5" height="6.5" stroke="#2f4858" fill="none"/>
+        <rect x="9" y="0.5" width="6.5" height="6.5" stroke="#2f4858" fill="none"/>
+        <rect x="0.5" y="9" width="6.5" height="6.5" stroke="#2f4858" fill="none"/>
+        <rect x="9" y="9" width="6.5" height="6.5" stroke="#2f4858" fill="none"/>
+      </svg>`,
+      object: `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 0 L16 4 L16 12 L8 16 L0 12 L0 4 Z" stroke="#2f4858" fill="none"/>
+        <line x1="8" y1="0" x2="8" y2="16" stroke="#2f4858"/>
+        <line x1="0" y1="4" x2="8" y2="8" stroke="#2f4858"/>
+        <line x1="16" y1="4" x2="8" y2="8" stroke="#2f4858"/>
+      </svg>`
+    };
+
+    //
+    // Fetch catalog from backend, build tag map, then re-render
+    //
+    async function fetchCatalog() {
+      try {
+        const resp = await fetch("api/catalog");
+        if (!resp.ok) {
+          console.error("Failed to fetch api/catalog:", resp.statusText);
+          return;
+        }
+        const items = await resp.json();
+        allItems = items.map(item => ({
+          ...item,
+          tags: item.tags || {}
+        }));
+        buildTagKeyMap();
+        applyFiltersAndRender();
+      } catch (err) {
+        console.error("Error fetching catalog:", err);
+      }
+    }
+
+    //
+    // Build a map { tagKey: [values...] } from allItems
+    //
+    function buildTagKeyMap() {
+      tagKeyToValues = {};
+      allItems.forEach(item => {
+        for (const [k, v] of Object.entries(item.tags)) {
+          if (!tagKeyToValues[k]) {
+            tagKeyToValues[k] = new Set();
+          }
+          tagKeyToValues[k].add(v);
+        }
+      });
+      for (const k in tagKeyToValues) {
+        tagKeyToValues[k] = Array.from(tagKeyToValues[k]).sort();
+      }
+    }
+
+    //
+    // Tag-filter management
+    //
+    function addTagFilterRow(key = "", value = "") {
+      const id = nextFilterId++;
+      tagFilters.push({ id, key, value });
+      renderTagFilters();
+      applyFiltersAndRender();
+    }
+
+    function removeTagFilterRow(id) {
+      tagFilters = tagFilters.filter(f => f.id !== id);
+      renderTagFilters();
+      applyFiltersAndRender();
+    }
+
+    function updateTagFilter(id, field, newVal) {
+      const filter = tagFilters.find(f => f.id === id);
+      if (!filter) return;
+      filter[field] = newVal;
+      if (field === "key") {
+        filter.value = "";
+      }
+      renderTagFilters();
+      applyFiltersAndRender();
+    }
+
+    function renderTagFilters() {
+      const container = document.getElementById("tag-filters");
+      container.innerHTML = "";
+
+      tagFilters.forEach(filter => {
+        const row = document.createElement("div");
+        row.className = "tag-filter-row";
+
+        // Key <select>
+        const keyInput = document.createElement("select");
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "-- key --";
+        keyInput.appendChild(defaultOption);
+
+        Object.keys(tagKeyToValues).sort().forEach(k => {
+          const opt = document.createElement("option");
+          opt.value = k;
+          opt.textContent = k;
+          keyInput.appendChild(opt);
+        });
+        keyInput.value = filter.key;
+        keyInput.addEventListener("change", () => {
+          updateTagFilter(filter.id, "key", keyInput.value);
+        });
+
+        // Value <select>
+        const valueInput = document.createElement("select");
+        const defaultValOpt = document.createElement("option");
+        defaultValOpt.value = "";
+        defaultValOpt.textContent = "-- value --";
+        valueInput.appendChild(defaultValOpt);
+
+        if (filter.key && tagKeyToValues[filter.key]) {
+          tagKeyToValues[filter.key].forEach(v => {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = v;
+            valueInput.appendChild(opt);
+          });
+        }
+        valueInput.value = filter.value;
+        valueInput.addEventListener("change", () => {
+          updateTagFilter(filter.id, "value", valueInput.value);
+        });
+
+        // Remove button
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "remove-filter";
+        removeBtn.innerHTML = "✕";
+        removeBtn.title = "Remove filter";
+        removeBtn.addEventListener("click", () => {
+          removeTagFilterRow(filter.id);
+        });
+
+        row.append(keyInput, valueInput, removeBtn);
+        container.appendChild(row);
+      });
+    }
+
+    document.getElementById("add-tag-filter").addEventListener("click", () => {
+      addTagFilterRow();
+    });
+
+    //
+    // Search input listener
+    //
+    document.getElementById("search-input").addEventListener("input", (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      applyFiltersAndRender();
+    });
+
+    //
+    // Type filter listener
+    //
+    document.getElementById("type-filter").addEventListener("change", (e) => {
+      typeFilter = e.target.value;
+      applyFiltersAndRender();
+    });
+
+    //
+    // Refresh button listener
+    //
+    document.getElementById("refresh-button").addEventListener("click", () => {
+      fetchCatalog();
+    });
+
+    //
+    // Toggle expand/collapse listener
+    //
+    document.getElementById("toggle-expand").addEventListener("click", () => {
+      const anyCollapsed = currentFiltered.some(item => !expandedUris.has(item.uri));
+      if (anyCollapsed) {
+        // Expand all
+        currentFiltered.forEach(item => expandedUris.add(item.uri));
+      } else {
+        // Collapse all
+        expandedUris.clear();
+      }
+      updateToggleIcon();
+      renderCatalogList(currentFiltered);
+    });
+
+    // Update the toggle button's icon and tooltip based on state
+    function updateToggleIcon() {
+      const btn = document.getElementById("toggle-expand");
+      const icon = document.getElementById("toggle-icon");
+      const anyCollapsed = currentFiltered.some(item => !expandedUris.has(item.uri));
+      if (anyCollapsed) {
+        // show expand icon
+        icon.innerHTML = ICON_EXPAND;
+        btn.title = "Expand All";
+      } else {
+        // show collapse icon
+        icon.innerHTML = ICON_COLLAPSE;
+        btn.title = "Collapse All";
+      }
+    }
+
+    //
+    // Apply type filter + tag filters + search + scoring, then render list
+    //
+    function applyFiltersAndRender() {
+      // 1) Type filtering
+      let filtered = allItems.filter(item => {
+        if (typeFilter === "all") return true;
+        return item.type === typeFilter;
+      });
+
+      // 2) Tag filtering (AND across all filters)
+      filtered = filtered.filter(item => {
+        return tagFilters.every(f => {
+          return f.key && f.value
+            ? (item.tags.hasOwnProperty(f.key) && item.tags[f.key] === f.value)
+            : true;
+        });
+      });
+
+      // 3) Search filtering + scoring
+      if (searchQuery) {
+        const scored = [];
+        filtered.forEach(item => {
+          const nameLower = item.name.toLowerCase();
+          const query = searchQuery;
+
+          // a) Name‐prefix match
+          const isPrefixMatch = nameLower.startsWith(query);
+
+          // b) Name‐substring match (non‐prefix)
+          const isSubstringMatch = !isPrefixMatch && nameLower.includes(query);
+
+          // c) Tag‐match
+          const isTagMatch = Object.entries(item.tags).some(([k, v]) => {
+            return k.toLowerCase().includes(query) || v.toLowerCase().includes(query);
+          });
+
+          // d) Column‐match
+          let isColumnMatch = false;
+          if (item.schema) {
+            isColumnMatch = Object.keys(item.schema).some(col =>
+              col.toLowerCase().includes(query)
+            );
+          }
+
+          // Assign score: 1=prefix, 2=substring, 3=tag, 4=column
+          let score = null;
+          if (isPrefixMatch) score = 1;
+          else if (isSubstringMatch) score = 2;
+          else if (isTagMatch) score = 3;
+          else if (isColumnMatch) score = 4;
+
+          if (score !== null) {
+            scored.push({ item, score });
+          }
+        });
+
+        // Sort by (score, name)
+        scored.sort((a, b) => {
+          if (a.score !== b.score) return a.score - b.score;
+          return a.item.name.localeCompare(b.item.name);
+        });
+        filtered = scored.map(x => x.item);
+      } else {
+        // No search: sort by updated_at descending
+        filtered.sort((a, b) => b.updated_at - a.updated_at);
+      }
+
+      currentFiltered = filtered;
+      updateToggleIcon();
+      renderCatalogList(filtered);
+    }
+
+    //
+    // Render the catalog list and preserve expanded state
+    //
+    function renderCatalogList(items) {
+      const list = document.getElementById("catalog-list");
+      list.innerHTML = "";
+
+      items.forEach(item => {
+        // Container for each catalog item
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "catalog-item";
+        itemDiv.dataset.uri = item.uri;
+
+        // Header
+        const header = document.createElement("div");
+        header.className = "catalog-item-header";
+
+        // Type icon
+        const iconDiv = document.createElement("div");
+        iconDiv.className = "icon-cell";
+        iconDiv.innerHTML = (item.type === "table" ? ICONS.table : ICONS.object);
+
+        // Text cell (name + updated)
+        const textDiv = document.createElement("div");
+        textDiv.className = "text-cell";
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "catalog-name";
+        nameDiv.textContent = item.name;
+
+        const updatedDiv = document.createElement("div");
+        updatedDiv.className = "catalog-updated";
+        const updatedDate = new Date(item.updated_at * 1000);
+        updatedDiv.textContent = `Updated: ${updatedDate.toLocaleString()}`;
+
+        textDiv.append(nameDiv, updatedDiv);
+
+        // Copy button at end of header
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "copy-button";
+        copyBtn.title = "Copy path to clipboard";
+        copyBtn.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+          </svg>
+        `;
+        copyBtn.addEventListener("click", (e) => {
+          e.stopPropagation(); // prevent expand toggle
+          // Build path: "item.name?tag1=val1&tag2=val2..."
+          const pairs = Object.entries(item.tags).map(
+            ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+          );
+          const tagString = pairs.join("&");
+          // Use raw item.name, without encoding
+          const path = tagString
+            ? `${item.name}?${tagString}`
+            : `${item.name}`;
+          navigator.clipboard.writeText(path).catch(err => {
+            console.error("Copy failed:", err);
+          });
+        });
+
+        // Assemble header: icon, text, copy button
+        header.append(iconDiv, textDiv, copyBtn);
+        itemDiv.appendChild(header);
+
+        // Details (collapsed by default)
+        const details = document.createElement("div");
+        details.className = "catalog-details";
+        details.id = `details-${sanitizeId(item.uri)}`;
+
+        // URI
+        const uriDiv = document.createElement("div");
+        uriDiv.className = "details-row";
+        // Wrap the URI in a scrollable container
+        uriDiv.innerHTML = `
+          <div class="details-header">URI:</div>
+          <div class="uri-value">${item.uri}</div>
+        `;
+        details.appendChild(uriDiv);
+
+        // Created At
+        const createdDiv = document.createElement("div");
+        createdDiv.className = "details-row";
+        const createdDate = new Date(item.created_at * 1000);
+        createdDiv.innerHTML = `
+          <div class="details-header">Created At:</div>
+          ${createdDate.toLocaleString()}
+        `;
+        details.appendChild(createdDiv);
+
+        // Tags
+        const tagsContainer = document.createElement("div");
+        tagsContainer.className = "details-row";
+        const tagsHeader = document.createElement("div");
+        tagsHeader.className = "details-header";
+        tagsHeader.textContent = "Tags:";
+        const tagsFlex = document.createElement("div");
+        tagsFlex.className = "details-tags";
+        Object.entries(item.tags).forEach(([k, v]) => {
+          const tagBadge = document.createElement("div");
+          tagBadge.className = "details-tag";
+          tagBadge.textContent = `${k}=${v}`;
+          tagsFlex.appendChild(tagBadge);
+        });
+        tagsContainer.append(tagsHeader, tagsFlex);
+        details.appendChild(tagsContainer);
+
+        // Schema (if table)
+        if (item.type === "table" && item.schema) {
+          const schemaContainer = document.createElement("div");
+          schemaContainer.className = "details-row";
+          const schemaHeader = document.createElement("div");
+          schemaHeader.className = "details-header";
+          schemaHeader.textContent = "Schema:";
+          schemaContainer.appendChild(schemaHeader);
+
+          const schemaFlex = document.createElement("div");
+          schemaFlex.className = "details-schema";
+          Object.entries(item.schema).forEach(([col, typ]) => {
+            const row = document.createElement("div");
+            row.className = "schema-row";
+            const colNameDiv = document.createElement("div");
+            colNameDiv.className = "schema-col-name";
+            colNameDiv.textContent = col;
+            const colTypeDiv = document.createElement("div");
+            colTypeDiv.className = "schema-col-type";
+            colTypeDiv.textContent = typ;
+            row.append(colNameDiv, colTypeDiv);
+            schemaFlex.appendChild(row);
+          });
+          schemaContainer.appendChild(schemaFlex);
+          details.appendChild(schemaContainer);
+        }
+
+        itemDiv.appendChild(details);
+
+        // Click handler: toggle expand/collapse, track in expandedUris
+        header.addEventListener("click", () => {
+          const uri = item.uri;
+          const isOpen = expandedUris.has(uri);
+          if (isOpen) {
+            expandedUris.delete(uri);
+            details.classList.remove("visible");
+          } else {
+            expandedUris.add(uri);
+            details.classList.add("visible");
+          }
+          updateToggleIcon();
+        });
+
+        // If previously expanded, re‐open
+        if (expandedUris.has(item.uri)) {
+          details.classList.add("visible");
+        }
+
+        list.appendChild(itemDiv);
+      });
+    }
+
+    //
+    // Utility: make a valid DOM id from a URI
+    //
+    function sanitizeId(uri) {
+      return uri.replace(/[^a-zA-Z0-9\-_:.]/g, "-");
+    }
+
+    //
+    // Initial load and polling every 5s
+    //
+    window.addEventListener("DOMContentLoaded", () => {
+      fetchCatalog();
+      setInterval(fetchCatalog, 5000);
+    });
+  </script>
+</body>
+</html>

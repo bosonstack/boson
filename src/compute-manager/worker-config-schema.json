@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/worker-config-local.schema.json",
+  "title": "Worker Configuration",
+  "type": "object",
+  "required": ["driver"],
+  "properties": {
+    "driver": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "local",
+          "description": "Local driver: all containers run on the control node itself."
+        },
+        "mounts": {
+          "type": "object",
+          "description": "Optional mapping of mount names to host directories.",
+          "additionalProperties": {
+            "type": "string",
+            "description": "Absolute path on the host to bind into the worker. Will be mounted at `/mnt/{name}`."
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

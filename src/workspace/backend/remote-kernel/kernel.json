@@ -1,0 +1,13 @@
+{
+  "argv": ["remote-kernel-placeholder"],
+  "env": {},
+  "display_name": "Flint Kernel",
+  "language": "python",
+  "interrupt_mode": "signal",
+  "metadata": {
+    "kernel_provisioner": {
+      "provisioner_name": "remote-provisioner",
+      "config": {}
+    }
+  }
+}

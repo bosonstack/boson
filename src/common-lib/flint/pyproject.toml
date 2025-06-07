@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "flint"
+version = "0.1.0"
+description = ""
+packages = [
+    { include = "flint" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.15"
+boto3 = ">=1.0.0,<1.36.0"
+botocore = "<1.36"
+polars = "1.27.1"
+deltalake = "^0.25.5"
+ipydatagrid = "^1.4.0"
+ipywidgets = "^8.1.6"
+perspective-python = "^3.5.1"
+fsspec = "^2025.3.2"
+requests = "^2.32.3"
+aim = "^3.29.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.plugins."jupyter_client.kernel_provisioners"]
+remote-provisioner = "backend.provisioner:RemoteContainerProvisioner"

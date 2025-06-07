@@ -1,0 +1,82 @@
+services:
+  storage:
+    image: zenko/cloudserver:latest
+    environment:
+      - SCALITY_ACCESS_KEY_ID=${STORAGE_USER:-admin}
+      - SCALITY_SECRET_ACCESS_KEY=${STORAGE_PASSWORD:-password}
+      - S3DATA=multiple
+      - REMOTE_MANAGEMENT_DISABLE=true
+    volumes:
+      - ./storage/config.json:/usr/src/app/config.json:ro
+      - storage_data:/usr/src/app/localData
+      - storage_meta:/usr/src/app/localMetadata
+
+  storage-init:
+    image: amazon/aws-cli
+    depends_on:
+      - storage
+    environment:
+      AWS_ACCESS_KEY_ID: ${STORAGE_USER:-admin}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_PASSWORD:-password}
+    volumes:
+      - ./storage/init-entrypoint.sh:/root/entrypoint.sh
+    entrypoint: ["/root/entrypoint.sh"]
+
+  compute-manager:
+    build: ./compute-manager
+    environment:
+      STORAGE_USER: ${STORAGE_USER:-admin}
+      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
+    volumes:
+      - ${WORKER_BUNDLE_DIR}:/app/worker
+      - ${DOCKER_SOCKET:-/dev/null}:/var/run/docker.sock
+
+  workspace:
+    build: 
+      context: .
+      dockerfile: ./workspace/Dockerfile
+    depends_on:
+      compute-manager:
+        condition: service_started
+      storage-init:
+        condition: service_completed_successfully
+    environment:
+      STORAGE_USER: ${STORAGE_USER:-admin}
+      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
+    entrypoint: ["/root/entrypoint.sh"]
+
+  catalog-explorer:
+    build: 
+      context: .
+      dockerfile: ./catalog-explorer/Dockerfile
+    depends_on:
+      storage-init:
+        condition: service_completed_successfully
+    environment:
+      STORAGE_USER: ${STORAGE_USER:-admin}
+      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
+      FLINT_CONTROL_PLANE_ENDPOINT: http://reverse-proxy
+    command:
+      - poetry 
+      - run 
+      - uvicorn 
+      - app:app 
+      - --host 
+      - 0.0.0.0 
+      - --port 
+      - "8002" 
+      - --reload
+
+  reverse-proxy:
+    image: nginx:alpine
+    ports:
+      - "${FLINT_PORT}:80"
+    depends_on:
+      - workspace
+      - compute-manager
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  storage_data:
+  storage_meta:
