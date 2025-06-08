@@ -17,6 +17,7 @@ WORKDIR /app
 COPY ../common-lib/flint ./common-lib/flint
 COPY ./workspace ./workspace
 WORKDIR /app/workspace
+RUN mv /app/workspace/entrypoint.sh /root/entrypoint.sh
 
 # Install Poetry
 RUN pip install --no-cache-dir poetry
