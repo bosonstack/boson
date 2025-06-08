@@ -1,6 +1,7 @@
 [tool.poetry]
 name = "flint"
-version = "0.1.0"
+version = "0.0.0"
+private = true
 description = ""
 packages = [
     { include = "flint" }
@@ -18,6 +19,7 @@ perspective-python = "^3.5.1"
 fsspec = "^2025.3.2"
 requests = "^2.32.3"
 aim = "^3.29.1"
+s3fs = "^2025.5.1"
 
 [build-system]
 requires = ["poetry-core"]
