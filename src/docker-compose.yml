@@ -31,20 +31,6 @@ services:
       - ${WORKER_BUNDLE_DIR}:/app/worker
       - ${DOCKER_SOCKET:-/dev/null}:/var/run/docker.sock
 
-  workspace:
-    build: 
-      context: .
-      dockerfile: ./workspace/Dockerfile
-    depends_on:
-      compute-manager:
-        condition: service_started
-      storage-init:
-        condition: service_completed_successfully
-    environment:
-      STORAGE_USER: ${STORAGE_USER:-admin}
-      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
-    entrypoint: ["/root/entrypoint.sh"]
-
   catalog-explorer:
     build: 
       context: .
@@ -56,16 +42,58 @@ services:
       STORAGE_USER: ${STORAGE_USER:-admin}
       STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
       FLINT_CONTROL_PLANE_ENDPOINT: http://reverse-proxy
-    command:
-      - poetry 
-      - run 
-      - uvicorn 
-      - app:app 
-      - --host 
-      - 0.0.0.0 
-      - --port 
-      - "8002" 
-      - --reload
+    entrypoint: [/root/entrypoint.sh]
+
+  experiment-server:
+    build: 
+      context: .
+      dockerfile: ./experiment-server/Dockerfile
+    depends_on:
+      storage-init:
+        condition: service_completed_successfully
+    environment:
+      STORAGE_USER: ${STORAGE_USER:-admin}
+      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
+      FLINT_CONTROL_PLANE_ENDPOINT: http://reverse-proxy
+    entrypoint: [/root/init-server.sh]
+    healthcheck:
+      test: ["CMD", "aim", "runs", "--repo", "aim://localhost:53800", "ls"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - experiment_data:/repo
+    
+  experiment-tracker:
+    image: aimstack/aim
+    depends_on:
+      experiment-server:
+        condition: service_healthy
+    entrypoint: [
+      "aim", "up", "--repo", "/repo", "--host", "0.0.0.0", 
+      "--port", "43800", "--base-path", "/experiment-tracker"
+    ]
+    volumes:
+      - experiment_data:/repo
+
+  workspace:
+    build: 
+      context: .
+      dockerfile: ./workspace/Dockerfile
+    depends_on:
+      compute-manager:
+        condition: service_started
+      storage-init:
+        condition: service_completed_successfully
+      catalog-explorer:
+        condition: service_started
+      experiment-tracker:
+        condition: service_started
+    environment:
+      STORAGE_USER: ${STORAGE_USER:-admin}
+      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
+    entrypoint: ["/root/entrypoint.sh"]
 
   reverse-proxy:
     image: nginx:alpine
@@ -80,3 +108,4 @@ services:
 volumes:
   storage_data:
   storage_meta:
+  experiment_data:

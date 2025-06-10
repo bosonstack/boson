@@ -14,21 +14,12 @@ from .catalog import (
     STORAGE_CREDENTIALS, 
     WriteCatalogItemTxn,
     DeleteCatalogItemTxn,
-    mv_catalog_item
+    mv_catalog_item,
+    parse_item_path
 )
 from typing import Dict, Tuple, Any, Optional
 from deltalake import DeltaTable
 import fsspec
-from urllib.parse import parse_qsl
-
-def _parse_path(path: str) -> Tuple[str, Dict[str, str]]:
-    if "?" in path:
-        name, query = path.split("?", 1)
-        tags = dict(parse_qsl(query))
-    else:
-        name = path
-        tags = {}
-    return name, tags
 
 def read_delta(
     path: Optional[str] = None,

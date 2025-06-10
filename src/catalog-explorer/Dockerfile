@@ -1,6 +1,5 @@
 FROM python:3.12-slim
 
-# Set workdir
 WORKDIR /app
 
 # Install Poetry
@@ -15,3 +14,6 @@ WORKDIR /app/catalog-explorer
 # Install dependencies
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-root
+
+# Inject entrypoint
+RUN mv ./entrypoint.sh /root/entrypoint.sh

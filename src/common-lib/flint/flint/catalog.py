@@ -15,6 +15,9 @@ import fsspec
 from datetime import datetime
 import uuid
 import re
+from typing import Tuple, Dict
+from urllib.parse import parse_qsl
+from urllib.parse import urlencode
 
 STORAGE_BUCKET = "metastore"
 
@@ -557,3 +560,19 @@ class DeleteCatalogItemTxn:
             .when_matched_delete()
             .execute()
         )
+
+def parse_item_path(path: str) -> Tuple[str, Dict[str, str]]:
+    if "?" in path:
+        name, query = path.split("?", 1)
+        tags = dict(parse_qsl(query))
+    else:
+        name = path
+        tags = {}
+    return name, tags
+
+def build_item_path(name: str, tags: Dict[str, str]) -> str:
+    if tags:
+        query = urlencode(tags)
+        return f"{name}?{query}"
+    else:
+        return name
