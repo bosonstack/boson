@@ -7,21 +7,31 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout full history
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      # Detect if src/ has changed
-      - name: Detect src changes
+      # Detect changes in the four code dirs only
+      - name: Detect code changes
         id: src
         run: |
-          echo "::set-output name=changed::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^src/' || true)"
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+          changes=$(git diff --name-only $BASE $HEAD \
+            | grep -E '^(src/common-lib/flint|src/catalog-explorer|src/kernel|src/workspace)/' || true)
+          echo "changed=$changes" >> $GITHUB_OUTPUT
 
-      # 1. VERSION bump if src/ changed
+      # Require VERSION bump only if one of those dirs changed
       - name: Check VERSION bump
         if: steps.src.outputs.changed != ''
         run: |
-          OLD=$(git show "${{ github.event.before }}:VERSION")
+          OLD=$(git show "${{ github.event.pull_request.base.sha }}:VERSION")
           NEW=$(cat VERSION)
-          [ "$OLD" != "$NEW" ] || { echo "ERROR: src/ changed but VERSION not bumped"; exit 1; }
+          if [ "$OLD" = "$NEW" ]; then
+            echo "ERROR: code under src/ changed but VERSION not bumped"
+            exit 1
+          fi
 
       # 2. Changelog entry
       - name: Check CHANGELOG
