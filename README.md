@@ -20,7 +20,7 @@ FlintML enables teams to deliver end-to-end ML quickly and with minimal infrastr
 
 **Core features:**
 - <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Delta Lake storage layer** – adds ACID guarantees and time travel to your data pipelines with scalable, versioned storage.
-- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Unified data catalog** – tables, models, artefacts, and any other file are treated as first-class data citizens.
+- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Unified data catalog** – tables, models, artefacts, and any other file types are treated as first-class data citizens.
 - <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Efficient data processing with Polars** – leverage lazy execution for memory-efficient data operations.
 
 **Integrated tools:**
