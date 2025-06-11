@@ -6,7 +6,6 @@ on:
 
 jobs:
   detect:
-    if: github.event.before != github.event.after && steps.check_version.outputs.changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout full history
@@ -19,14 +18,21 @@ jobs:
         run: |
           OLD=$(git show "${{ github.event.before }}:VERSION")
           NEW=$(cat VERSION)
-          echo "::set-output name=changed::$( [ "$OLD" != "$NEW" ] && echo true || echo false )"
+          if [ "$OLD" = "$NEW" ]; then
+            echo "VERSION unchanged; skipping detection."
+            echo "::set-output name=run_detect::false"
+          else
+            echo "VERSION bumped from $OLD to $NEW"
+            echo "::set-output name=run_detect::true"
+          fi
 
       - name: Determine changed services
         id: detect
+        if: steps.check_version.outputs.run_detect == 'true'
         run: |
-          out=""
           BASE=${{ github.event.before }}
           HEAD=${{ github.event.after }}
+          out=""
 
           # storage
           if git diff --name-only $BASE $HEAD | grep -q '^src/storage/'; then
@@ -63,9 +69,9 @@ jobs:
             out="${out} reverse-proxy"
           fi
 
-          echo "Changed services:${out}"
-          echo "::set-output name=services::${out}"
+          echo "services=$out" >> $GITHUB_OUTPUT
 
       - name: Print services to build
+        if: steps.check_version.outputs.run_detect == 'true'
         run: |
-          echo "${{ steps.detect.outputs.services }}"
+          echo "Changed services: ${{ steps.detect.outputs.services }}"
