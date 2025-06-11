@@ -69,6 +69,11 @@ jobs:
             out="${out} reverse-proxy"
           fi
 
+          # common lib
+          if git diff --name-only $BASE $HEAD | grep -q '^src/common-lib/flint/'; then
+            out="${out} catalog-explorer workspace"
+          fi
+
           echo "services=$out" >> $GITHUB_OUTPUT
 
       - name: Print services to build
