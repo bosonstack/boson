@@ -1,0 +1,52 @@
+name: PR Checks
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Detect if src/ has changed
+      - name: Detect src changes
+        id: src
+        run: |
+          echo "::set-output name=changed::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^src/' || true)"
+
+      # 1. VERSION bump if src/ changed
+      - name: Check VERSION bump
+        if: steps.src.outputs.changed != ''
+        run: |
+          OLD=$(git show "${{ github.event.before }}:VERSION")
+          NEW=$(cat VERSION)
+          [ "$OLD" != "$NEW" ] || { echo "ERROR: src/ changed but VERSION not bumped"; exit 1; }
+
+      # 2. Changelog entry
+      - name: Check CHANGELOG
+        run: |
+          grep -q "^\[$(cat VERSION)\]" CHANGELOG.md || { echo "ERROR: no CHANGELOG entry for $(cat VERSION)"; exit 1; }
+
+      # 3. README badge
+      - name: Check README badge
+        run: |
+          grep -q "badge-version-v$(cat VERSION)-" README.md || { echo "ERROR: README badge not updated"; exit 1; }
+
+      # 4. Lock-files up to date
+      - name: Lockfile hygiene
+        run: |
+          for dir in \
+            src/common-lib/flint \
+            src/catalog-explorer \
+            src/kernel \
+            src/workspace; do
+            poetry lock --directory "$dir" --no-update
+            git diff --exit-code "$dir/poetry.lock" || {
+              echo "ERROR: $dir/poetry.lock is out of date"; exit 1
+            }
+          done
+
+      # 5. No CRLF
+      - name: Check line endings
+        run: grep -R $'\r' . && { echo "ERROR: CRLF found"; exit 1; } || true
