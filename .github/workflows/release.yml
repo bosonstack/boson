@@ -80,3 +80,53 @@ jobs:
         if: steps.check_version.outputs.run_detect == 'true'
         run: |
           echo "Changed services: ${{ steps.detect.outputs.services }}"
+
+      - name: Set up QEMU & Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASS }}
+
+      - name: Build & push changed services
+        if: steps.check_version.outputs.run_detect == 'true'
+        run: |
+          REG=flintml
+          NEW=$(cat VERSION)
+          # dedupe the list
+          changed=( ${{ steps.detect.outputs.services }} )
+          services_unique=( $(printf "%s\n" "${changed[@]}" | sort -u) )
+
+          for svc in "${services_unique[@]}"; do
+            echo "Building & pushing $svc"
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              -t $REG/$svc:$NEW \
+              -t $REG/$svc:latest \
+              src/$svc --push
+          done
+
+      - name: Retag unchanged services
+        if: steps.check_version.outputs.run_detect == 'true'
+        run: |
+          REG=flintml
+          OLD=${{ steps.check_version.outputs.old }}
+          NEW=$(cat VERSION)
+          all=( storage compute-manager experiment-server catalog-explorer experiment-tracker workspace reverse-proxy )
+          # reuse the deduped changed array
+          declare -A is_changed
+          for svc in "${services_unique[@]}"; do is_changed[$svc]=1; done
+
+          for svc in "${all[@]}"; do
+            if [ -z "${is_changed[$svc]}" ]; then
+              echo "Retagging $svc from $OLD → $NEW"
+              docker pull $REG/$svc:$OLD
+              id=$(docker images --no-trunc -q $REG/$svc:$OLD)
+              docker tag $id $REG/$svc:$NEW
+              docker push $REG/$svc:$NEW
+              docker tag $id $REG/$svc:latest
+              docker push $REG/$svc:latest
+            fi
+          done
