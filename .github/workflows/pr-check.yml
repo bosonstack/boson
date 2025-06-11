@@ -61,4 +61,10 @@ jobs:
 
       # 5. No CRLF
       - name: Check line endings
-        run: grep -R $'\r' . && { echo "ERROR. CRLF found"; exit 1; } || true
+        run: |
+          matches=$(grep -RIn $'\r' . || true)
+          if [ -n "$matches" ]; then
+            echo "CRLF detected in these files (file:line:content):"
+            echo "$matches"
+            exit 1
+          fi
