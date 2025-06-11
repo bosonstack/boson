@@ -37,7 +37,15 @@ jobs:
             echo "ERROR: README version badge not updated"; exit 1
           }
 
-      # 4. Lock-files up to date
+      # Install Python and Poetry CLI
+      - name: Set up Python & install Poetry
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry
+        run: pip install poetry
+
+      # 4. Lockfile hygiene
       - name: Lockfile hygiene
         run: |
           for dir in \
