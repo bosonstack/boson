@@ -53,7 +53,7 @@ jobs:
             src/catalog-explorer \
             src/kernel \
             src/workspace; do
-            poetry lock --directory "$dir" --no-update
+            poetry lock --directory "$dir"
             git diff --exit-code "$dir/poetry.lock" || {
               echo "ERROR: $dir/poetry.lock is out of date"; exit 1
             }
