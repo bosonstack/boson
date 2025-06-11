@@ -1,82 +1,85 @@
+x-storage-creds: &storage-creds
+  environment:
+    STORAGE_USER: ${STORAGE_USER:-admin}
+    STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
+
 services:
+
+  # --- BACKEND SERVICES ---
+
   storage:
-    image: zenko/cloudserver:latest
-    environment:
-      - SCALITY_ACCESS_KEY_ID=${STORAGE_USER:-admin}
-      - SCALITY_SECRET_ACCESS_KEY=${STORAGE_PASSWORD:-password}
-      - S3DATA=multiple
-      - REMOTE_MANAGEMENT_DISABLE=true
+    <<: *storage-creds
+    build: ./storage
     volumes:
-      - ./storage/config.json:/usr/src/app/config.json:ro
       - storage_data:/usr/src/app/localData
       - storage_meta:/usr/src/app/localMetadata
-
-  storage-init:
-    image: amazon/aws-cli
-    depends_on:
-      - storage
-    environment:
-      AWS_ACCESS_KEY_ID: ${STORAGE_USER:-admin}
-      AWS_SECRET_ACCESS_KEY: ${STORAGE_PASSWORD:-password}
-    volumes:
-      - ./storage/init-entrypoint.sh:/root/entrypoint.sh
-    entrypoint: ["/root/entrypoint.sh"]
+    restart: always
 
   compute-manager:
+    <<: *storage-creds
     build: ./compute-manager
-    environment:
-      STORAGE_USER: ${STORAGE_USER:-admin}
-      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
     volumes:
-      - ${WORKER_BUNDLE_DIR}:/app/worker
+      - ${DRIVER_CONFIG}:/app/worker/worker.yaml
       - ${DOCKER_SOCKET:-/dev/null}:/var/run/docker.sock
+    restart: always
 
-  workspace:
+  experiment-server:
+    <<: *storage-creds
     build: 
       context: .
-      dockerfile: ./workspace/Dockerfile
+      dockerfile: ./experiment-server/Dockerfile
     depends_on:
-      compute-manager:
-        condition: service_started
-      storage-init:
-        condition: service_completed_successfully
-    environment:
-      STORAGE_USER: ${STORAGE_USER:-admin}
-      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
-    entrypoint: ["/root/entrypoint.sh"]
+      storage:
+        condition: service_healthy
+    volumes:
+      - experiment_data:/repo
+    restart: always
+
+  ### --- FRONTEND SERVICES ---
 
   catalog-explorer:
+    <<: *storage-creds
     build: 
       context: .
       dockerfile: ./catalog-explorer/Dockerfile
     depends_on:
-      storage-init:
-        condition: service_completed_successfully
-    environment:
-      STORAGE_USER: ${STORAGE_USER:-admin}
-      STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
-      FLINT_CONTROL_PLANE_ENDPOINT: http://reverse-proxy
-    command:
-      - poetry 
-      - run 
-      - uvicorn 
-      - app:app 
-      - --host 
-      - 0.0.0.0 
-      - --port 
-      - "8002" 
-      - --reload
+      storage:
+        condition: service_healthy
+    restart: always
+    
+  experiment-tracker:
+    build: ./experiment-tracker
+    depends_on:
+      experiment-server:
+        condition: service_healthy
+    volumes:
+      - experiment_data:/repo
+    restart: always
+
+  workspace:
+    <<: *storage-creds
+    build: 
+      context: .
+      dockerfile: ./workspace/Dockerfile
+    depends_on:
+      - catalog-explorer
+      - experiment-tracker
+    restart: always
 
   reverse-proxy:
-    image: nginx:alpine
-    ports:
-      - "${FLINT_PORT}:80"
+    build: ./reverse-proxy
     depends_on:
+      - storage
       - workspace
       - compute-manager
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - catalog-explorer
+      - experiment-server
+      - experiment-tracker
+    ports:
+      - "${FLINT_PORT:-8701}:80"
+    restart: always
 
 volumes:
   storage_data:
   storage_meta:
+  experiment_data:

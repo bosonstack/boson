@@ -1,5 +1,5 @@
 {
-    "name": "aim-ui",
+    "name": "experiment-tracker",
     "version": "0.1.0",
     "description": "A Jupyterlab extension that embeds Aim experiment tracker.",
     "main": "lib/index.js",

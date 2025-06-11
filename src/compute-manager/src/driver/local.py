@@ -18,25 +18,14 @@ from src.driver.base import Driver, ContainerContext, ContainerStatus, DriverSta
 
 SIGTERM_EXIT = 143
 SIGKILL_EXIT = 137
-WORKER_TAR_PATH = "/app/worker/worker.tar"
 
 class LocalDriver(Driver):
-    def __init__(self, configs: dict):
-        super().__init__()
+    def __init__(self, config: dict):
+        super().__init__(config)
         self._docker: docker.DockerClient = docker.from_env()
 
         self._containers: Dict[str, Tuple[ContainerContext, Optional[Container]]] = {}
         self._watch_tasks: Dict[str, asyncio.Task] = {}
-
-        self._mounts = configs.get("mounts", {})
-        
-        try:
-            with open(WORKER_TAR_PATH, "rb") as f:
-                self._docker.images.load(f.read())
-                logging.info(f"Successfully loaded worker image from {WORKER_TAR_PATH}")
-        except Exception as e:
-            logging.error(f"Failed to load worker image from {WORKER_TAR_PATH}: {e}", exc_info=True)
-            raise e
 
     async def launch_container(self, ctx: ContainerContext) -> None:
         """Start a container and begin watching it for unexpected exits."""
@@ -78,14 +67,14 @@ class LocalDriver(Driver):
 
             # Create mount configuration
             volumes_dict = {}
-            for name, host_path in self._mounts.items():
+            for name, host_path in self.mounts.items():
                 container_path = f"/mnt/{name}"
                 volumes_dict[host_path] = {"bind": container_path, "mode": "ro"}
 
             # Launch the container (do NOT start ipykernel yet)
             container = await asyncio.to_thread(
                 self._docker.containers.run,
-                image="worker:latest",
+                image=self.worker_image,
                 name=f"flint__{project_name}__worker__{ctx.id}",
                 detach=True,
                 auto_remove=True,

@@ -7,12 +7,16 @@
   "properties": {
     "driver": {
       "type": "object",
-      "required": ["type"],
+      "required": ["type", "image"],
       "properties": {
         "type": {
           "type": "string",
           "const": "local",
           "description": "Local driver: all containers run on the control node itself."
+        },
+        "image": {
+          "type": "string",
+          "description": "The Docker image to use for the worker container."
         },
         "mounts": {
           "type": "object",

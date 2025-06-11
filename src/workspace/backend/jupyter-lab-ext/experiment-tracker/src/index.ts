@@ -23,7 +23,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
 
       const iframe = new IFrame();
-      iframe.url = '/aim/';
+      iframe.url = '/experiment-tracker/';
       iframe.title.label = 'Experiment Tracker';
       iframe.title.closable = true;
       iframe.id = 'experiment-tracker-frame';

@@ -1,7 +1,6 @@
 [tool.poetry]
 name = "flint"
 version = "0.0.0"
-private = true
 description = ""
 packages = [
     { include = "flint" }

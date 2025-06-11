@@ -1,1 +1,0 @@
-FROM flint-kernel:latest

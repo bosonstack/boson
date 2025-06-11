@@ -16,18 +16,9 @@ from flint.catalog import (
     mv_catalog_item,
     get_catalog_item,
     CatalogItemNotFoundError,
-    query_catalog
+    query_catalog,
+    parse_item_path
 )
-from urllib.parse import parse_qsl
-
-def _parse_path(path: str) -> Tuple[str, Dict[str, str]]:
-    if "?" in path:
-        name, query = path.split("?", 1)
-        tags = dict(parse_qsl(query))
-    else:
-        name = path
-        tags = {}
-    return name, tags
 
 class _ObjectTxnFile:
     """
@@ -105,7 +96,7 @@ def open_object(
       A file-like handle. On write/append, updates the Flint catalog.
     """
     if path:
-        name, tags = _parse_path(path)
+        name, tags = parse_item_path(path)
 
     return _ObjectTxnFile(name=name, tags=tags, mode=mode, fs_open_kwargs=fs_open_kwargs)
 
@@ -119,7 +110,7 @@ def delete_object(
     If `path` is not provided, falls back to `name` and `tags`.
     """
     if path:
-        name, tags = _parse_path(path)
+        name, tags = parse_item_path(path)
 
     with DeleteCatalogItemTxn(
         item_type=CatalogItemType.OBJECT,
@@ -157,7 +148,7 @@ def exists_object(
     Flint catalog. If `path` is not provided, falls back to `name` and `tags`.
     """
     if path:
-        name, tags = _parse_path(path)
+        name, tags = parse_item_path(path)
         
     try:
         get_catalog_item(

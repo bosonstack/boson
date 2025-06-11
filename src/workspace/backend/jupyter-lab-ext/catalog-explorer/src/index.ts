@@ -23,7 +23,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   activate: (app: JupyterFrontEnd) => {
     // Create an IFrame to load external content
     const content = new IFrame();
-    content.url = '/catalog/';
+    content.url = '/catalog-explorer/';
     content.id = 'catalog-explorer-iframe';
     content.title.label = 'Catalog Explorer';
     content.title.closable = true;
