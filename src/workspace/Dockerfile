@@ -79,3 +79,5 @@ RUN jupyter kernelspec remove --f python3
 # Apply Jupyter Lab changes and config
 RUN jupyter lab clean
 RUN jupyter lab build --dev-build=False --minimize=False --name "Flint"
+
+ENTRYPOINT ["/root/entrypoint.sh"]

@@ -48,6 +48,10 @@ class SystemStatusResponse(BaseModel):
     driver_status: DriverStatus
 
 # --- Endpoints ---
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 @app.post("/allocate", response_model=AllocationResponse, status_code=202)
 async def allocate(req: AllocationRequest):
     logging.info(f"Allocating container for request:\n{req}")

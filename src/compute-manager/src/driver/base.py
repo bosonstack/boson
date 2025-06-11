@@ -39,6 +39,13 @@ class DriverStatus:
     num_running_containers: int
 
 class Driver(ABC):
+    worker_image: str
+    mounts: Dict[str, str]
+
+    def __init__(self, config: Dict):
+        self.worker_image = config["image"]
+        self.mounts = config.get("mounts", {})
+
     @abstractmethod
     async def can_allocate_container(self, ctx: ContainerContext) -> bool:
         """Determines whether container can be launched for requested context."""

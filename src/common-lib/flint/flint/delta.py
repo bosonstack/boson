@@ -34,7 +34,7 @@ def read_delta(
     Mirrors the signature of `polars.read_delta`.
     """
     if path:
-        name, tags = _parse_path(path)
+        name, tags = parse_item_path(path)
 
     polars_kwargs["storage_options"] = POLARS_STORAGE_OPTIONS
 
@@ -62,7 +62,7 @@ def scan_delta(
     Mirrors the signature of `polars.scan_delta`.
     """
     if path:
-        name, tags = _parse_path(path)
+        name, tags = parse_item_path(path)
 
     polars_kwargs["storage_options"] = POLARS_STORAGE_OPTIONS
 
@@ -91,7 +91,7 @@ def write_delta(
     Mirrors the signature of `polars.DataFrame.write_delta`.
     """
     if path:
-        name, tags = _parse_path(path)
+        name, tags = parse_item_path(path)
 
     polars_kwargs["storage_options"] = POLARS_STORAGE_OPTIONS
 
@@ -115,7 +115,7 @@ def open_delta(
     Mirrors the signature of `deltalake.DeltaTable`.
     """
     if path:
-        name, tags = _parse_path(path)
+        name, tags = parse_item_path(path)
 
     catalog_item = get_catalog_item(
         item_type=CatalogItemType.TABLE,
@@ -139,7 +139,7 @@ def drop_delta(
     If `path` is not provided, falls back to `name` and `tags`.
     """
     if path:
-        name, tags = _parse_path(path)
+        name, tags = parse_item_path(path)
 
     with DeleteCatalogItemTxn(
         item_type=CatalogItemType.TABLE,
