@@ -3,7 +3,7 @@
   <img width="500px" src="docs/_assets/logo-text.png" alt="FlintML Logo Text" /><br/>
 
   <!-- Badges, all inside the same HTML block -->
-  <img src="https://img.shields.io/badge/version-v0.1.2-cf051c" alt="Version 0.1.2" />
+  <img src="https://img.shields.io/badge/version-v0.1.3-cf051c" alt="Version 0.1.3" />
   <img src="https://img.shields.io/badge/license-BSL_1.1-blue" alt="License BSL 1.1" />
 
   </br>
