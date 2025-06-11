@@ -12,24 +12,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Detect changes in the four code dirs only
-      - name: Detect code changes
+      - name: Detect src/ changes
         id: src
         run: |
           BASE=${{ github.event.pull_request.base.sha }}
           HEAD=${{ github.event.pull_request.head.sha }}
-          changes=$(git diff --name-only $BASE $HEAD \
-            | grep -E '^(src/common-lib/flint|src/catalog-explorer|src/kernel|src/workspace)/' || true)
+          changes=$(git diff --name-only $BASE $HEAD | grep -E '^src/' || true)
           echo "changed=$changes" >> $GITHUB_OUTPUT
 
-      # Require VERSION bump only if one of those dirs changed
       - name: Check VERSION bump
         if: steps.src.outputs.changed != ''
         run: |
           OLD=$(git show "${{ github.event.pull_request.base.sha }}:VERSION")
           NEW=$(cat VERSION)
           if [ "$OLD" = "$NEW" ]; then
-            echo "ERROR: code under src/ changed but VERSION not bumped"
+            echo "ERROR: src/ changed but VERSION not bumped"
             exit 1
           fi
 
