@@ -1,0 +1,71 @@
+# .github/workflows/release-detect.yml
+name: Detect Release Components
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  detect:
+    if: github.event.before != github.event.after && steps.check_version.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check if VERSION changed
+        id: check_version
+        run: |
+          OLD=$(git show "${{ github.event.before }}:VERSION")
+          NEW=$(cat VERSION)
+          echo "::set-output name=changed::$( [ "$OLD" != "$NEW" ] && echo true || echo false )"
+
+      - name: Determine changed services
+        id: detect
+        run: |
+          out=""
+          BASE=${{ github.event.before }}
+          HEAD=${{ github.event.after }}
+
+          # storage
+          if git diff --name-only $BASE $HEAD | grep -q '^src/storage/'; then
+            out="${out} storage"
+          fi
+
+          # compute-manager
+          if git diff --name-only $BASE $HEAD | grep -q '^src/compute-manager/'; then
+            out="${out} compute-manager"
+          fi
+
+          # experiment-server
+          if git diff --name-only $BASE $HEAD | grep -q '^src/experiment-server/'; then
+            out="${out} experiment-server"
+          fi
+
+          # catalog-explorer
+          if git diff --name-only $BASE $HEAD | grep -q '^src/catalog-explorer/'; then
+            out="${out} catalog-explorer"
+          fi
+
+          # experiment-tracker
+          if git diff --name-only $BASE $HEAD | grep -q '^src/experiment-tracker/'; then
+            out="${out} experiment-tracker"
+          fi
+
+          # workspace
+          if git diff --name-only $BASE $HEAD | grep -q '^src/workspace/'; then
+            out="${out} workspace"
+          fi
+
+          # reverse-proxy
+          if git diff --name-only $BASE $HEAD | grep -q '^src/reverse-proxy/'; then
+            out="${out} reverse-proxy"
+          fi
+
+          echo "Changed services:${out}"
+          echo "::set-output name=services::${out}"
+
+      - name: Print services to build
+        run: |
+          echo "${{ steps.detect.outputs.services }}"
