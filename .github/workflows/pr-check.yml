@@ -30,21 +30,18 @@ jobs:
             exit 1
           fi
 
-      # 2. Changelog entry
       - name: Check CHANGELOG
         run: |
           grep -q "^## \[\($(cat VERSION)\)\]" CHANGELOG.md || {
             echo "ERROR: no CHANGELOG entry for $(cat VERSION)"; exit 1
           }
 
-      # 3. README badge
       - name: Check README badge
         run: |
           grep -q "version-v$(cat VERSION)-" README.md || {
             echo "ERROR: README version badge not updated"; exit 1
           }
 
-      # Install Python and Poetry CLI
       - name: Set up Python & install Poetry
         uses: actions/setup-python@v5
         with:
@@ -52,8 +49,7 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
 
-      # 4. Lockfile hygiene
-      - name: Lockfile hygiene
+      - name: Ensure lockfile hygiene
         run: |
           for dir in \
             src/common-lib/flint \
@@ -66,8 +62,7 @@ jobs:
             }
           done
 
-      # 5. No CRLF
-      - name: Check line endings
+      - name: Assert LF line endings
         run: |
           matches=$(grep -RIn $'\r' . || true)
           if [ -n "$matches" ]; then
