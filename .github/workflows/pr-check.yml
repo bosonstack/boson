@@ -33,7 +33,9 @@ jobs:
       # 3. README badge
       - name: Check README badge
         run: |
-          grep -q "badge-version-v$(cat VERSION)-" README.md || { echo "ERROR: README badge not updated"; exit 1; }
+          grep -q "version-v$(cat VERSION)-" README.md || {
+            echo "ERROR: README version badge not updated"; exit 1
+          }
 
       # 4. Lock-files up to date
       - name: Lockfile hygiene
