@@ -18,7 +18,12 @@ jobs:
           BASE=${{ github.event.pull_request.base.sha }}
           HEAD=${{ github.event.pull_request.head.sha }}
           changes=$(git diff --name-only $BASE $HEAD | grep -E '^src/' || true)
-          echo "changed=$changes" >> $GITHUB_OUTPUT
+
+          {
+            echo "changed<<EOF"
+            echo "$changes"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Check VERSION bump
         if: steps.src.outputs.changed != ''
