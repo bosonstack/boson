@@ -49,4 +49,4 @@ jobs:
 
       # 5. No CRLF
       - name: Check line endings
-        run: grep -R $'\r' . && { echo "ERROR: CRLF found"; exit 1; } || true
+        run: grep -R $'\r' . && { echo "ERROR. CRLF found"; exit 1; } || true
