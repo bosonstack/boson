@@ -181,15 +181,10 @@ jobs:
           cp src/worker.example.yaml $DIR/worker.yaml
           tar czf flintml-v${NEW}.tar.gz $DIR
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release & Upload Tarball
         if: steps.check_version.outputs.run_detect == 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.check_version.outputs.new }}
           name: v${{ steps.check_version.outputs.new }}
-
-      - name: Upload compose asset
-        if: steps.check_version.outputs.run_detect == 'true'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: docker-compose.${{ steps.check_version.outputs.new }}.yml
+          files: flintml-v${{ steps.check_version.outputs.new }}.tar.gz
