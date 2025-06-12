@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.1.7] - ...
+- Misc changes in prep for release
+
 ## [0.1.6] - ...
 - Misc changes in prep for release
 

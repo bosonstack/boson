@@ -16,13 +16,13 @@ jobs:
       - name: Check if VERSION changed
         id: check_version
         run: |
-          OLD=$(git show "${{ github.event.before }}:VERSION")
+          OLD=$(git show "${{ github.event.before }}:VERSION" 2>/dev/null || echo "")
           NEW=$(cat VERSION)
+          echo "::set-output name=old::$OLD"
+          echo "::set-output name=new::$NEW"
           if [ "$OLD" = "$NEW" ]; then
-            echo "VERSION unchanged; skipping detection."
             echo "::set-output name=run_detect::false"
           else
-            echo "VERSION bumped from $OLD to $NEW"
             echo "::set-output name=run_detect::true"
           fi
 
@@ -34,47 +34,33 @@ jobs:
           HEAD=${{ github.event.after }}
           out=""
 
-          # storage
-          if git diff --name-only $BASE $HEAD | grep -q '^src/storage/'; then
-            out="${out} storage"
+          # On first release (no OLD), mark all services
+          if [ -z "${{ steps.check_version.outputs.old }}" ]; then
+            out="storage compute-manager experiment-server catalog-explorer experiment-tracker workspace reverse-proxy"
+          else
+            # storage
+            if git diff --name-only $BASE $HEAD | grep -q '^src/storage/'; then out="${out} storage"; fi
+            # compute-manager
+            if git diff --name-only $BASE $HEAD | grep -q '^src/compute-manager/'; then out="${out} compute-manager"; fi
+            # experiment-server
+            if git diff --name-only $BASE $HEAD | grep -q '^src/experiment-server/'; then out="${out} experiment-server"; fi
+            # catalog-explorer
+            if git diff --name-only $BASE $HEAD | grep -q '^src/catalog-explorer/'; then out="${out} catalog-explorer"; fi
+            # experiment-tracker
+            if git diff --name-only $BASE $HEAD | grep -q '^src/experiment-tracker/'; then out="${out} experiment-tracker"; fi
+            # workspace
+            if git diff --name-only $BASE $HEAD | grep -q '^src/workspace/'; then out="${out} workspace"; fi
+            # reverse-proxy
+            if git diff --name-only $BASE $HEAD | grep -q '^src/reverse-proxy/'; then out="${out} reverse-proxy"; fi
+            # common-lib changes
+            if git diff --name-only $BASE $HEAD | grep -q '^src/common-lib/flint/'; then
+              out="${out} catalog-explorer workspace"
+            fi
           fi
 
-          # compute-manager
-          if git diff --name-only $BASE $HEAD | grep -q '^src/compute-manager/'; then
-            out="${out} compute-manager"
-          fi
-
-          # experiment-server
-          if git diff --name-only $BASE $HEAD | grep -q '^src/experiment-server/'; then
-            out="${out} experiment-server"
-          fi
-
-          # catalog-explorer
-          if git diff --name-only $BASE $HEAD | grep -q '^src/catalog-explorer/'; then
-            out="${out} catalog-explorer"
-          fi
-
-          # experiment-tracker
-          if git diff --name-only $BASE $HEAD | grep -q '^src/experiment-tracker/'; then
-            out="${out} experiment-tracker"
-          fi
-
-          # workspace
-          if git diff --name-only $BASE $HEAD | grep -q '^src/workspace/'; then
-            out="${out} workspace"
-          fi
-
-          # reverse-proxy
-          if git diff --name-only $BASE $HEAD | grep -q '^src/reverse-proxy/'; then
-            out="${out} reverse-proxy"
-          fi
-
-          # common lib
-          if git diff --name-only $BASE $HEAD | grep -q '^src/common-lib/flint/'; then
-            out="${out} catalog-explorer workspace"
-          fi
-
-          echo "services=$out" >> $GITHUB_OUTPUT
+          # Dedupe and output
+          services=$(printf "%s\n" $out | sort -u | xargs)
+          echo "services=$services" >> $GITHUB_OUTPUT
 
       - name: Print services to build
         if: steps.check_version.outputs.run_detect == 'true'
@@ -109,24 +95,26 @@ jobs:
           done
 
       - name: Retag unchanged services
-        if: steps.check_version.outputs.run_detect == 'true'
+        if: steps.check_version.outputs.run_detect == 'true' && steps.check_version.outputs.old != ''
         run: |
           REG=flintml
           OLD=${{ steps.check_version.outputs.old }}
-          NEW=$(cat VERSION)
+          NEW=${{ steps.check_version.outputs.new }}
           all=( storage compute-manager experiment-server catalog-explorer experiment-tracker workspace reverse-proxy )
-          # reuse the deduped changed array
+          changed=( ${{ steps.detect.outputs.services }} )
+          # dedupe
+          mapfile -t unique_changed < <(printf "%s\n" "${changed[@]}" | sort -u)
           declare -A is_changed
-          for svc in "${services_unique[@]}"; do is_changed[$svc]=1; done
+          for svc in "${unique_changed[@]}"; do is_changed[$svc]=1; done
 
           for svc in "${all[@]}"; do
             if [ -z "${is_changed[$svc]}" ]; then
               echo "Retagging $svc from $OLD → $NEW"
               docker pull $REG/$svc:$OLD
-              id=$(docker images --no-trunc -q $REG/$svc:$OLD)
-              docker tag $id $REG/$svc:$NEW
+              ID=$(docker images --no-trunc -q $REG/$svc:$OLD)
+              docker tag $ID $REG/$svc:$NEW
               docker push $REG/$svc:$NEW
-              docker tag $id $REG/$svc:latest
+              docker tag $ID $REG/$svc:latest
               docker push $REG/$svc:latest
             fi
           done
