@@ -116,7 +116,7 @@ jobs:
             if [ "$build" = true ]; then
               echo "🔨 Building & pushing $svc:$NEW"
               docker buildx build \
-                --platform linux/amd64,linux/arm64 \
+                --platform linux/amd64 \
                 -t "$REG/$svc:$NEW" \
                 -t "$REG/$svc:latest" \
                 "src/$svc" --push
