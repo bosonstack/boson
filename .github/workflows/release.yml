@@ -102,24 +102,54 @@ jobs:
 
           for svc in "${all[@]}"; do
             build=false
-
-            # rebuild if in changed list
+            # rebuild if svc changed
             if printf "%s\n" "${changed[@]}" | grep -xq "$svc"; then
               build=true
             fi
-
-            # rebuild if old image missing or manifest inspect fails
+            # rebuild if old image missing
             if ! docker manifest inspect "$REG/$svc:$OLD" >/dev/null 2>&1; then
               build=true
             fi
 
             if [ "$build" = true ]; then
               echo "🔨 Building & pushing $svc:$NEW"
+
+              case "$svc" in
+                storage)
+                  CTX="src/storage"
+                  DOCKERFILE="src/storage/Dockerfile"
+                  ;;
+                compute-manager)
+                  CTX="src/compute-manager"
+                  DOCKERFILE="src/compute-manager/Dockerfile"
+                  ;;
+                experiment-server)
+                  CTX="src"
+                  DOCKERFILE="src/experiment-server/Dockerfile"
+                  ;;
+                catalog-explorer)
+                  CTX="src"
+                  DOCKERFILE="src/catalog-explorer/Dockerfile"
+                  ;;
+                experiment-tracker)
+                  CTX="src/experiment-tracker"
+                  DOCKERFILE="src/experiment-tracker/Dockerfile"
+                  ;;
+                workspace)
+                  CTX="src"
+                  DOCKERFILE="src/workspace/Dockerfile"
+                  ;;
+                reverse-proxy)
+                  CTX="src/reverse-proxy"
+                  DOCKERFILE="src/reverse-proxy/Dockerfile"
+                  ;;
+              esac
+
               docker buildx build \
-                --platform linux/amd64 \
                 -t "$REG/$svc:$NEW" \
                 -t "$REG/$svc:latest" \
-                "src/$svc" --push
+                -f "$DOCKERFILE" "$CTX" --push
+
             else
               echo "🔖 Retagging $svc:$OLD → $svc:$NEW"
               docker pull "$REG/$svc:$OLD"
