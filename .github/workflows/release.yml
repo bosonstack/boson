@@ -16,14 +16,14 @@ jobs:
       - name: Check if VERSION changed
         id: check_version
         run: |
-          OLD=$(git show "${{ github.event.before }}:VERSION")
+          OLD=$(git show "${{ github.event.before }}:VERSION" 2>/dev/null || echo "")
           NEW=$(cat VERSION)
-          if [ "$OLD" = "$NEW" ]; then
-            echo "VERSION unchanged; skipping detection."
-            echo "::set-output name=run_detect::false"
-          else
-            echo "VERSION bumped from $OLD to $NEW"
+          echo "::set-output name=old::$OLD"
+          echo "::set-output name=new::$NEW"
+          if [ "$OLD" != "$NEW" ]; then
             echo "::set-output name=run_detect::true"
+          else
+            echo "::set-output name=run_detect::false"
           fi
 
       - name: Determine changed services
@@ -74,12 +74,13 @@ jobs:
             out="${out} catalog-explorer workspace"
           fi
 
-          echo "services=$out" >> $GITHUB_OUTPUT
+          # dedupe
+          services=$(printf "%s\n" $out | sort -u | xargs)
+          echo "services=$services" >> $GITHUB_OUTPUT
 
-      - name: Print services to build
+      - name: Print services to publish
         if: steps.check_version.outputs.run_detect == 'true'
-        run: |
-          echo "Changed services: ${{ steps.detect.outputs.services }}"
+        run: echo "Services to build/publish are ${{ steps.detect.outputs.services }}"
 
       - name: Set up QEMU & Buildx
         uses: docker/setup-buildx-action@v3
@@ -90,43 +91,42 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASS }}
 
-      - name: Build & push changed services
-        if: steps.check_version.outputs.run_detect == 'true'
-        run: |
-          REG=flintml
-          NEW=$(cat VERSION)
-          # dedupe the list
-          changed=( ${{ steps.detect.outputs.services }} )
-          services_unique=( $(printf "%s\n" "${changed[@]}" | sort -u) )
-
-          for svc in "${services_unique[@]}"; do
-            echo "Building & pushing $svc"
-            docker buildx build \
-              --platform linux/amd64,linux/arm64 \
-              -t $REG/$svc:$NEW \
-              -t $REG/$svc:latest \
-              src/$svc --push
-          done
-
-      - name: Retag unchanged services
+      - name: Build or retag all services
         if: steps.check_version.outputs.run_detect == 'true'
         run: |
           REG=flintml
           OLD=${{ steps.check_version.outputs.old }}
-          NEW=$(cat VERSION)
+          NEW=${{ steps.check_version.outputs.new }}
           all=( storage compute-manager experiment-server catalog-explorer experiment-tracker workspace reverse-proxy )
-          # reuse the deduped changed array
-          declare -A is_changed
-          for svc in "${services_unique[@]}"; do is_changed[$svc]=1; done
+          read -r -a changed <<< "${{ steps.detect.outputs.services }}"
 
           for svc in "${all[@]}"; do
-            if [ -z "${is_changed[$svc]}" ]; then
-              echo "Retagging $svc from $OLD → $NEW"
-              docker pull $REG/$svc:$OLD
-              id=$(docker images --no-trunc -q $REG/$svc:$OLD)
-              docker tag $id $REG/$svc:$NEW
-              docker push $REG/$svc:$NEW
-              docker tag $id $REG/$svc:latest
-              docker push $REG/$svc:latest
+            build=false
+
+            # rebuild if in changed list
+            if printf "%s\n" "${changed[@]}" | grep -xq "$svc"; then
+              build=true
+            fi
+
+            # rebuild if old image missing or manifest inspect fails
+            if ! docker manifest inspect "$REG/$svc:$OLD" >/dev/null 2>&1; then
+              build=true
+            fi
+
+            if [ "$build" = true ]; then
+              echo "🔨 Building & pushing $svc:$NEW"
+              docker buildx build \
+                --platform linux/amd64,linux/arm64 \
+                -t "$REG/$svc:$NEW" \
+                -t "$REG/$svc:latest" \
+                "src/$svc" --push
+            else
+              echo "🔖 Retagging $svc:$OLD → $svc:$NEW"
+              docker pull "$REG/$svc:$OLD"
+              ID=$(docker images --no-trunc -q "$REG/$svc:$OLD")
+              docker tag "$ID" "$REG/$svc:$NEW"
+              docker push "$REG/$svc:$NEW"
+              docker tag "$ID" "$REG/$svc:latest"
+              docker push "$REG/$svc:latest"
             fi
           done
