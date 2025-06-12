@@ -1,4 +1,6 @@
 name: Detect & Publish Release
+permissions:
+  contents: write
 on:
   push:
     branches: [ master ]
@@ -173,8 +175,6 @@ jobs:
         with:
           tag_name: v${{ steps.check_version.outputs.new }}
           name: v${{ steps.check_version.outputs.new }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload compose asset
         if: steps.check_version.outputs.run_detect == 'true'
