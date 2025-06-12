@@ -1,11 +1,10 @@
-# .github/workflows/release-detect.yml
-name: Detect Release Components
+name: Detect & Publish Release
 on:
   push:
     branches: [ master ]
 
 jobs:
-  detect:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout full history
@@ -160,3 +159,27 @@ jobs:
               docker push "$REG/$svc:latest"
             fi
           done
+
+      - name: Render compose for release
+        if: steps.check_version.outputs.run_detect == 'true'
+        run: |
+          NEW=${{ steps.check_version.outputs.new }}
+          envsubst < docker-compose.template.yml \
+            > docker-compose.${NEW}.yml
+
+      - name: Create GitHub Release
+        if: steps.check_version.outputs.run_detect == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.check_version.outputs.new }}
+          name: v${{ steps.check_version.outputs.new }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload compose asset
+        if: steps.check_version.outputs.run_detect == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: docker-compose.${{ steps.check_version.outputs.new }}.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
