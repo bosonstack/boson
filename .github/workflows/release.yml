@@ -166,8 +166,8 @@ jobs:
         if: steps.check_version.outputs.run_detect == 'true'
         run: |
           NEW=${{ steps.check_version.outputs.new }}
-          export VERSION=$NEW
-          envsubst < src/docker-compose.template.yml \
+          # tell envsubst to only touch VERSION
+          VERSION=$NEW envsubst '${VERSION}' < src/docker-compose.template.yml \
             > docker-compose.v${NEW}.yml
 
       - name: Package release tarball
@@ -177,7 +177,7 @@ jobs:
           mkdir $DIR
           mv docker-compose.v${NEW}.yml $DIR/
           cp src/.env.example   $DIR/.env
-          cp src/worker.example.yaml $DIR/worker.yaml
+          cp src/worker.example.yaml $DIR/worker.example.yaml
           tar czf flintml.tar.gz $DIR
 
       - name: Create GitHub Release & Upload Tarball
