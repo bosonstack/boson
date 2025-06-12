@@ -164,7 +164,7 @@ jobs:
         if: steps.check_version.outputs.run_detect == 'true'
         run: |
           NEW=${{ steps.check_version.outputs.new }}
-          envsubst < docker-compose.template.yml \
+          envsubst < src/docker-compose.template.yml \
             > docker-compose.${NEW}.yml
 
       - name: Create GitHub Release
