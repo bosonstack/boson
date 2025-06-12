@@ -14,4 +14,4 @@ HEALTHCHECK --interval=5s \
             --timeout=3s \
             --start-period=5s \
             --retries=5 \
-  CMD aim runs --repo aim://localhost:53800 ls || exit 1
+ CMD aim runs --repo aim://localhost:53800 ls || exit 1

@@ -1,23 +1,28 @@
-FROM python:3.12-slim
-
-ENV FLINT_CONTROL_PLANE_ENDPOINT=http://reverse-proxy
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# Install Poetry
-RUN pip install --no-cache-dir poetry
-
-# Copy project files
+# Copy build context
 COPY ../common-lib/flint ./common-lib/flint
 COPY ./catalog-explorer ./catalog-explorer
 
 WORKDIR /app/catalog-explorer
 
-# Install dependencies
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-root
+# Install Python dependencies
+RUN pip install --no-cache-dir poetry
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-root --no-interaction --no-ansi
 
-# Inject entrypoint
-RUN mv ./entrypoint.sh /root/entrypoint.sh
+FROM python:3.12-slim AS runtime
 
+ENV FLINT_CONTROL_PLANE_ENDPOINT=http://reverse-proxy
+WORKDIR /app
+
+# Inject dependencies
+COPY --from=builder /usr/local/lib/python3.12/site-packages \
+                    /usr/local/lib/python3.12/site-packages
+COPY --from=builder /app/catalog-explorer /app
+
+RUN mv /app/entrypoint.sh /root/entrypoint.sh
+RUN chmod +x /root/entrypoint.sh
 ENTRYPOINT ["/root/entrypoint.sh"]

@@ -1,28 +1,30 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# Install system packages: curl, ping (iputils-ping), ssh client
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        curl \
-        iputils-ping \
-        openssh-client && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
+# Copy build context
 COPY ./ ./
 
-RUN chmod +x entrypoint.sh
-
+# Install Python dependencies
 RUN pip install --no-cache-dir poetry
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-root
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-root --no-interaction --no-ansi
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+FROM python:3.12-slim AS runtime
+
+WORKDIR /app
+
+# Inject dependencies
+COPY --from=builder /usr/local/lib/python3.12/site-packages \
+                    /usr/local/lib/python3.12/site-packages
+COPY --from=builder /app /app
+
+RUN mv /app/entrypoint.sh /root/entrypoint.sh
+RUN chmod +x /root/entrypoint.sh
+ENTRYPOINT ["/root/entrypoint.sh"]
 
 HEALTHCHECK --interval=30s \
             --timeout=5s \
             --start-period=5s \
             --retries=3 \
-  CMD curl --fail http://127.0.0.1:8000/health || exit 1
+ CMD curl --fail http://127.0.0.1:8000/health || exit 1
