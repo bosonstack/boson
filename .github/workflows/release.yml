@@ -166,25 +166,23 @@ jobs:
         if: steps.check_version.outputs.run_detect == 'true'
         run: |
           NEW=${{ steps.check_version.outputs.new }}
-          # render compose
+          export VERSION=$NEW
           envsubst < src/docker-compose.template.yml \
             > docker-compose.v${NEW}.yml
 
       - name: Package release tarball
-        if: steps.check_version.outputs.run_detect == 'true'
         run: |
           NEW=${{ steps.check_version.outputs.new }}
           DIR="flintml-v${NEW}"
           mkdir $DIR
           mv docker-compose.v${NEW}.yml $DIR/
-          cp src/.env.example $DIR/.env
+          cp src/.env.example   $DIR/.env
           cp src/worker.example.yaml $DIR/worker.yaml
-          tar czf flintml-v${NEW}.tar.gz $DIR
+          tar czf flintml.tar.gz $DIR
 
       - name: Create GitHub Release & Upload Tarball
-        if: steps.check_version.outputs.run_detect == 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.check_version.outputs.new }}
           name: v${{ steps.check_version.outputs.new }}
-          files: flintml-v${{ steps.check_version.outputs.new }}.tar.gz
+          files: flintml.tar.gz
