@@ -18,7 +18,6 @@ COPY . .
 
 RUN mv entrypoint.sh /root/wrapper-entrypoint.sh
 RUN chmod +x /root/wrapper-entrypoint.sh
-
 ENTRYPOINT ["/root/wrapper-entrypoint.sh"]
 CMD ["yarn", "start"]
 
