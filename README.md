@@ -48,7 +48,8 @@ $ docker compose -f docker-compose.*.yml up
 # FlintML will become available at localhost:8701
 ```
 
-See the [reference](docs/reference.md) to learn about the out-of-the-box FlintML functions.
+### [Concepts](docs/concepts.md)
+### [Reference](docs/reference.md)
 
 ## ⚙️ Customising Your Deployment
 
