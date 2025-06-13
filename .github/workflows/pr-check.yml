@@ -80,11 +80,11 @@ jobs:
         run: |
           pushd src
           cp .env.example .env
-          docker-compose -f docker-compose.build.yml up -d
+          docker compose -f docker-compose.build.yml up -d
           timeout 60 sh -c '
             until curl -sf http://localhost:8701/; do
               sleep 1
             done
           '
-          docker-compose -f docker-compose.build.yml down
+          docker compose -f docker-compose.build.yml down
           popd
