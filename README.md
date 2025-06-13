@@ -3,7 +3,7 @@
   <img width="500px" src="docs/_assets/logo-text.png" alt="FlintML Logo Text" /><br/>
 
   <!-- Badges, all inside the same HTML block -->
-  <img src="https://img.shields.io/badge/version-v0.1.18-cf051c" alt="Version 0.1.18" />
+  <img src="https://img.shields.io/badge/version-v0.1.19-cf051c" alt="Version 0.1.19" />
   <img src="https://img.shields.io/badge/license-BSL_1.1-blue" alt="License BSL 1.1" />
 
   </br>
@@ -19,27 +19,99 @@
 FlintML enables teams to deliver end-to-end ML quickly and with minimal infrastructure overhead. With FlintML, all key components of the MLOps process are centralised, providing an integrated and developer-centric experience.
 
 **Core features:**
-- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Delta Lake storage layer** – adds ACID guarantees and time travel to your data pipelines with scalable, versioned storage.
+- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **[Delta Lake](https://github.com/delta-io/delta) storage layer** – adds ACID guarantees and time travel to your data pipelines with scalable, versioned storage.
 - <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Unified data catalog** – tables, models, artefacts, and any other file types are treated as first-class data citizens.
-- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Efficient data processing with Polars** – leverage lazy execution for memory-efficient data operations.
+- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Efficient data processing with [Polars](https://github.com/pola-rs/polars)** – leverage lazy execution for memory-efficient data operations.
 
 **Integrated tools:**
-- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Experiment tracking with Aim** – run experiments and compare them all in one place.
+- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Experiment tracking with [Aim](https://github.com/aimhubio/aim)** – run experiments and compare them all in one place.
 - <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Familiar notebook development environment** – all functions are seamlessly integrated with Jupyter Lab.
-- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Workflow orchestration via Dagster (WIP\*)** – load data, retrain models, and run inference on a schedule.
+- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Workflow orchestration via [Dagster](https://github.com/dagster-io/dagster) (WIP\*)** – load data, retrain models, and run inference on a schedule.
 
 **Platform & Deployment:**
-- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Flexible compute** – switch between compute *drivers* to fit your use case, or write your own.
+- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Flexible and reproducible compute** – switch between compute *drivers* to fit your use case, or write your own.
 - <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Composable, declarative infrastructure** – have full control over your Docker Compose deployment.
 
+## 🔎 Demo
 
-**WORK IN PROGRESS! UNSTABLE BUILD!**
+To get a sense of what you can do with FlintML, check out the [Instacart Kaggle example](docs/example-instacart.md).
 
+## 🚀 Quickstart
 
-## Quickstart
+**Note:** ensure Docker is installed and you are on a Linux (or WSL) machine (ARM currently not supported.)
 
-## Qucik Look
+```bash
+curl -L -o flintml.tar.gz https://github.com/flintml/flint/releases/latest/download/flintml.tar.gz
+tar xzf flintml.tar.gz
+cd flintml-*
+docker compose -f docker-compose.*.yml up
+# FlintML will become available at localhost:8701
+```
 
-## Custom Deployment
+See the [reference](docs/reference.md) to learn about the out-of-the-box FlintML functions.
 
-## Contributing
+## ⚙️ Customising Your Deployment
+
+### Data Storage
+
+The `docker-compose.*.yml` in each FlintML release contains the named Docker volumes `storage_data`, `storage_meta` and `experiment_data`. If you wish to specify custom volumes, you should create an override `docker-compose.override.yml` and compose it when spinning up flint. See the [docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/).
+
+### Environment Variables
+
+#### `FLINT_PORT`
+
+Defines the port number at which the FlintML platform will be served.
+
+Default of `8701`.
+
+#### `STORAGE_USER` and `STORAGE_PASSWORD`.
+
+These environment variables define the login credentials that [Worker Containers](docs/concepts.md#worker-containers) and services in the [Flint Control Plane](docs/concepts.md#flint-control-plane) use to authenticate to the [Flint Catalog](docs/concepts.md#flint-catalog).
+
+Defaults are `admin` and `password` respectively.
+
+#### `DRIVER_CONFIG`
+
+This must be the file path to the desired [Worker Configuration](#worker-configuration).
+
+No default. See [example](src/.env.example) env file.
+
+#### `DOCKER_SOCKET`
+
+FlintML uses [Worker Containers](docs/concepts.md#worker-containers) to execute code and run jobs. These containers are orchestrated by the configured driver. If the [Local Driver](docs/concepts.md#local-driver) is selected, the Docker socket must be mounted to the Compute Manager service in the [Flint Control Plane](docs/concepts.md#flint-control-plane).
+
+Since mounting the Docker socket has security implications, the default value for this environment variable is `/dev/null`, meaning that the Docker socket IS NOT mounted.
+
+The [quickstart](#quickstart) uses the Local Driver for simplicity and thus mounts the docker socket. See [example](src/.env.example) env file.
+
+### Worker Configuration
+
+To see the full worker specificaton, see the [schema](src/compute-manager/worker-config-schema.json). Some example configurations are provided below.
+
+[Local Driver](docs/concepts.md#local-driver) with mounted NAS volume:
+
+```yaml
+driver:
+  type: local
+  image: flintml/worker-base:latest
+  mounts:
+    # <mount_name>: <host_mount_point>
+    image-data: /mnt/nas/images # Will be available at `/mnt/image-data` inside worker container.
+```
+
+To customise compute environments, you will need to use a [custom image](docs/concepts.md#custom-images).
+
+## 🎯 Roadmap
+
+1. Workflows (in-progress)
+2. Data upload support (can be achieved by defining a worker mount but is inconvenient)
+2. Libcloud driver
+3. Multi-user support
+
+## 🤝 Contributing
+
+We would be stoked for you to get involved with FlintML development! If you'd like to get more involved, please contact us at contact@flintml.com.
+
+- 💬 [Start a discussion](https://github.com/bosonstack/boson/discussions)
+- 🛠️ [Fix a bug](https://github.com/bosonstack/boson/issues/new)
+- 🧠 [Request a feature](https://github.com/bosonstack/boson/issues/new)
