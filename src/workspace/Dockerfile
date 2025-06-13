@@ -55,8 +55,6 @@ RUN echo '{"appName":"Flint"}' \
     jupyter lab clean && \
     jupyter lab build --dev-build=False --minimize=False --name "Flint"
 
-RUN mkdir -p /srv/workspace
-
 FROM python:3.12-slim
 
 # Inject dependencies
@@ -68,8 +66,8 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages/jupyter_server/stati
                     /usr/local/lib/python3.12/site-packages/jupyter_server/static/favicons
 COPY --from=builder /usr/local/share/jupyter/kernels /usr/local/share/jupyter/kernels
 COPY --from=builder /usr/local/etc/jupyter /usr/local/etc/jupyter
+COPY --from=builder /app/workspace /app/workspace
 
-# Create workspace
 RUN mkdir -p /srv/workspace
 
 COPY --from=builder /app/workspace/entrypoint.sh /root/entrypoint.sh
