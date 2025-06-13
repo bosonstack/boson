@@ -41,10 +41,10 @@ To get a sense of what you can do with FlintML, check out the [Instacart Kaggle 
 **Note:** ensure Docker is installed and you are on a Linux (or WSL) machine (ARM currently not supported.)
 
 ```bash
-curl -L -o flintml.tar.gz https://github.com/flintml/flint/releases/latest/download/flintml.tar.gz
-tar xzf flintml.tar.gz
-cd flintml-*
-docker compose -f docker-compose.*.yml up
+$ curl -L -o flintml.tar.gz https://github.com/flintml/flint/releases/latest/download/flintml.tar.gz
+$ tar xzf flintml.tar.gz
+$ cd flintml-*
+$ docker compose -f docker-compose.*.yml up
 # FlintML will become available at localhost:8701
 ```
 
