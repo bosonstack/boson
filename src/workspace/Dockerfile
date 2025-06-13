@@ -57,27 +57,21 @@ RUN echo '{"appName":"Flint"}' \
 
 RUN mkdir -p /srv/workspace
 
-# TODO: DELETE
+FROM python:3.12-slim
 
-RUN mv /app/workspace/entrypoint.sh /root/entrypoint.sh
+# Inject dependencies
+COPY --from=builder /usr/local/lib/python3.12/site-packages \
+                    /usr/local/lib/python3.12/site-packages
+COPY --from=builder /root/.jupyter /root/.jupyter
+COPY --from=builder /usr/local/share/jupyter /usr/local/share/jupyter
+COPY --from=builder /usr/local/lib/python3.12/site-packages/jupyter_server/static/favicons \
+                    /usr/local/lib/python3.12/site-packages/jupyter_server/static/favicons
+COPY --from=builder /usr/local/share/jupyter/kernels /usr/local/share/jupyter/kernels
+COPY --from=builder /usr/local/etc/jupyter /usr/local/etc/jupyter
+
+# Create workspace
+RUN mkdir -p /srv/workspace
+
+COPY --from=builder /app/workspace/entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh
 ENTRYPOINT ["/root/entrypoint.sh"]
-
-# FROM python:3.12-slim
-
-# # Inject dependencies
-# COPY --from=builder /usr/local/lib/python3.12/site-packages \
-#                     /usr/local/lib/python3.12/site-packages
-# COPY --from=builder /root/.jupyter /root/.jupyter
-# COPY --from=builder /usr/local/share/jupyter /usr/local/share/jupyter
-# COPY --from=builder /usr/local/lib/python3.12/site-packages/jupyter_server/static/favicons \
-#                     /usr/local/lib/python3.12/site-packages/jupyter_server/static/favicons
-# COPY --from=builder /usr/local/share/jupyter/kernels /usr/local/share/jupyter/kernels
-# COPY --from=builder /usr/local/etc/jupyter /usr/local/etc/jupyter
-
-# # Create workspace
-# RUN mkdir -p /srv/workspace
-
-# COPY --from=builder /app/workspace/entrypoint.sh /root/entrypoint.sh
-# RUN chmod +x /root/entrypoint.sh
-# ENTRYPOINT ["/root/entrypoint.sh"]
