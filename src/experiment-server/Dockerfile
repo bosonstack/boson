@@ -6,9 +6,9 @@ WORKDIR /app
 
 COPY ./experiment-server ./experiment-server
 
-RUN mv ./experiment-server/init-server.sh /root/init-server.sh
-
-ENTRYPOINT ["/root/init-server.sh"]
+RUN mv ./experiment-server/entrypoint.sh /root/entrypoint.sh
+RUN chmod +x /root/entrypoint.sh
+ENTRYPOINT ["/root/entrypoint.sh"]
 
 HEALTHCHECK --interval=5s \
             --timeout=3s \
