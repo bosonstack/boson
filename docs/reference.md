@@ -4,7 +4,7 @@ The following reference is for the public symbols exposed by the `flint` Python 
 
 ---
 
-## `flint.experiment.new_run`
+## `flint.new_run`
 
 ```python
 def new_run(*args, **kwargs) -> Run:
@@ -24,7 +24,7 @@ with new_run(experiment="mnist-classifier") as run:
 
 ---
 
-## `flint.experiment.log_artifact`
+## `flint.log_artifact`
 
 ```python
 def log_artifact(
@@ -55,7 +55,7 @@ with new_run(experiment="audio-demo") as run:
 
 ---
 
-## `flint.editor.display`
+## `flint.display`
 
 ```python
 def display(df: pl.DataFrame | pl.LazyFrame):
@@ -77,7 +77,7 @@ display(df)
 
 ---
 
-## `flint.delta.read_delta`
+## `flint.read_delta`
 
 ```python
 def read_delta(
@@ -98,7 +98,7 @@ def read_delta(
 
 ```python
 import polars as pl
-from flint.delta import read_delta
+from flint import read_delta
 
 # Retrieve the latest version of a feature table by logical name & tags
 features = read_delta(name="user_features", tags={"v": "2025‑06‑01"})
@@ -106,7 +106,7 @@ features = read_delta(name="user_features", tags={"v": "2025‑06‑01"})
 
 ---
 
-## `flint.delta.scan_delta`
+## `flint.scan_delta`
 
 ```python
 def scan_delta(
@@ -126,7 +126,7 @@ def scan_delta(
 **Example**
 
 ```python
-from flint.delta import scan_delta
+from flint import scan_delta
 
 # Build a lazy query that joins two logical tables, then collect synchronously
 transactions = scan_delta(name="tx", tags={"v": "prod"})
@@ -143,7 +143,7 @@ report = (
 
 ---
 
-## `flint.delta.write_delta`
+## `flint.write_delta`
 
 ```python
 def write_delta(
@@ -165,7 +165,7 @@ def write_delta(
 
 ```python
 import polars as pl
-from flint.delta import write_delta
+from flint import write_delta
 
 df = pl.DataFrame({"id": [1, 2, 3], "score": [98, 82, 91]})
 
@@ -175,7 +175,7 @@ write_delta(df, name="exam_scores", tags={"subject": "math", "year": "2025"})
 
 ---
 
-## `flint.delta.open_delta`
+## `flint.open_delta`
 
 ```python
 def open_delta(
@@ -195,7 +195,7 @@ def open_delta(
 **Example**
 
 ```python
-from flint.delta import open_delta
+from flint import open_delta
 
 dt = open_delta(name="exam_scores", tags={"subject": "math", "year": "2025"})
 print("Current version:", dt.version())
@@ -203,7 +203,7 @@ print("Current version:", dt.version())
 
 ---
 
-## `flint.delta.drop_delta`
+## `flint.drop_delta`
 
 ```python
 def drop_delta(
@@ -220,14 +220,14 @@ def drop_delta(
 **Example**
 
 ```python
-from flint.delta import drop_delta
+from flint import drop_delta
 
 drop_delta(name="temporary_dataset", tags={"tmp": "yes"})
 ```
 
 ---
 
-## `flint.delta.move_delta`
+## `flint.move_delta`
 
 ```python
 def move_delta(
@@ -244,7 +244,7 @@ def move_delta(
 **Example**
 
 ```python
-from flint.delta import move_delta
+from flint import move_delta
 
 move_delta(
     old_name="exam_scores",
@@ -256,7 +256,7 @@ move_delta(
 
 ---
 
-## `flint.fs.open_object`
+## `flint.open_object`
 
 ```python
 def open_object(
@@ -285,7 +285,7 @@ def open_object(
 **Example**
 
 ```python
-from flint.fs import open_object
+from flint import open_object
 
 # Write bytes to a new object
 with open_object(name="logo.png", tags={"project": "brand"}, mode="wb") as f:
@@ -298,7 +298,7 @@ with open_object(name="logo.png", tags={"project": "brand"}, mode="rb") as f:
 
 ---
 
-## `flint.fs.delete_object`
+## `flint.delete_object`
 
 ```python
 def delete_object(
@@ -315,14 +315,14 @@ def delete_object(
 **Example**
 
 ```python
-from flint.fs import delete_object
+from flint import delete_object
 
 delete_object(name="logo.png", tags={"project": "brand"})
 ```
 
 ---
 
-## `flint.fs.move_object`
+## `flint.move_object`
 
 ```python
 def move_object(
@@ -340,7 +340,7 @@ def move_object(
 **Example**
 
 ```python
-from flint.fs import move_object
+from flint import move_object
 
 move_object(
     old_name="logo.png",
@@ -352,7 +352,7 @@ move_object(
 
 ---
 
-## `flint.fs.exists_object`
+## `flint.exists_object`
 
 ```python
 def exists_object(
@@ -369,7 +369,7 @@ def exists_object(
 **Example**
 
 ```python
-from flint.fs import exists_object
+from flint import exists_object
 
 if exists_object(name="logo.png", tags={"project": "brand", "version": "v2"}):
     print("Found the updated logo!")
@@ -377,7 +377,7 @@ if exists_object(name="logo.png", tags={"project": "brand", "version": "v2"}):
 
 ---
 
-## `flint.fs.search_objects`
+## `flint.search_objects`
 
 ```python
 def search_objects(
@@ -408,7 +408,7 @@ def search_objects(
 **Example**
 
 ```python
-from flint.fs import search_objects
+from flint import search_objects
 
 recent_models = search_objects(
     tag_filter={"category": "model"},

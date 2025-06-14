@@ -3,7 +3,7 @@
   <img width="500px" src="docs/_assets/logo-text.png" alt="FlintML Logo Text" /><br/>
 
   <!-- Badges, all inside the same HTML block -->
-  <img src="https://img.shields.io/badge/version-v0.1.19-cf051c" alt="Version 0.1.19" />
+  <img src="https://img.shields.io/badge/version-v0.1.20-cf051c" alt="Version 0.1.20" />
   <img src="https://img.shields.io/badge/license-BSL_1.1-blue" alt="License BSL 1.1" />
 
   </br>
@@ -52,6 +52,22 @@ $ docker compose -f docker-compose.*.yml up
 ### [Reference](docs/reference.md)
 
 ## ⚙️ Customising Your Deployment
+
+### Building Locally
+
+All FlintML codefiles live under `src/`. You will see two sets of Compose, env and worker config files - `build` and `release-template`. `release-template` files are used to define the release tarball and thus can be ignored for local development. 
+
+To build locally, you must firstly build the base worker image so it exists in your local Docker registry:
+
+```bash
+docker build -f ./src/worker-base/Dockerfile -t worker-base:latest ./src/
+```
+
+Then you can spin up the platform by using the `build` files:
+
+```bash
+docker compose -f ./src/docker-compose.build.yml --env-file ./src/.env.build up
+```
 
 ### Data Storage
 

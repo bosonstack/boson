@@ -1,0 +1,3 @@
+driver:
+  type: local
+  image: worker-base:latest # Look in local registry
