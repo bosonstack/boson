@@ -59,7 +59,7 @@ jobs:
           for dir in \
             src/common-lib/flint \
             src/catalog-explorer \
-            src/kernel \
+            src/worker-base \
             src/workspace; do
             poetry lock --directory "$dir"
             git diff --exit-code "$dir/poetry.lock" || {

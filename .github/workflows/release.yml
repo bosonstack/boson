@@ -70,9 +70,14 @@ jobs:
             out="${out} reverse-proxy"
           fi
 
+          # worker-base
+          if git diff --name-only $BASE $HEAD | grep -q '^src/worker-base/'; then
+            out="${out} worker-base"
+          fi
+
           # common lib
           if git diff --name-only $BASE $HEAD | grep -q '^src/common-lib/flint/'; then
-            out="${out} catalog-explorer workspace"
+            out="${out} catalog-explorer workspace worker-base"
           fi
 
           # dedupe
@@ -144,6 +149,10 @@ jobs:
                   CTX="src/reverse-proxy"
                   DOCKERFILE="src/reverse-proxy/Dockerfile"
                   ;;
+                worker-base)
+                  CTX="src"
+                  DOCKERFILE="src/worker-base/Dockerfile"
+                  ;;
               esac
 
               docker buildx build \
@@ -166,9 +175,22 @@ jobs:
         if: steps.check_version.outputs.run_detect == 'true'
         run: |
           NEW=${{ steps.check_version.outputs.new }}
-          # tell envsubst to only touch VERSION
-          VERSION=$NEW envsubst '${VERSION}' < src/docker-compose.template.yml \
+          VERSION=$NEW envsubst '${VERSION}' < src/docker-compose.release-template.yml \
             > docker-compose.v${NEW}.yml
+
+      - name: Render worker conf for release
+        if: steps.check_version.outputs.run_detect == 'true'
+        run: |
+          NEW=${{ steps.check_version.outputs.new }}
+          VERSION=$NEW envsubst '${VERSION}' < src/worker.release-template.yaml \
+            > worker.v${NEW}.yaml
+
+      - name: Render env for release
+        if: steps.check_version.outputs.run_detect == 'true'
+        run: |
+          NEW=${{ steps.check_version.outputs.new }}
+          VERSION=$NEW envsubst '${VERSION}' < src/.env.release-template \
+            > .env.v${NEW}
 
       - name: Package release tarball
         run: |
@@ -176,8 +198,8 @@ jobs:
           DIR="flintml-v${NEW}"
           mkdir $DIR
           mv docker-compose.v${NEW}.yml $DIR/
-          cp src/.env.example   $DIR/.env
-          cp src/worker.example.yaml $DIR/worker.example.yaml
+          cp src/.env.v${NEW}   $DIR/.env
+          mv src/worker.v${NEW}.yaml $DIR/
           tar czf flintml.tar.gz $DIR
 
       - name: Create GitHub Release & Upload Tarball
