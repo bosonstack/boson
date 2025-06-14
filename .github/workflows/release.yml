@@ -198,8 +198,8 @@ jobs:
           DIR="flintml-v${NEW}"
           mkdir $DIR
           mv docker-compose.v${NEW}.yml $DIR/
-          cp src/.env.v${NEW}   $DIR/.env
-          mv src/worker.v${NEW}.yaml $DIR/
+          cp .env.v${NEW}   $DIR/.env
+          mv worker.v${NEW}.yaml $DIR/
           tar czf flintml.tar.gz $DIR
 
       - name: Create GitHub Release & Upload Tarball
