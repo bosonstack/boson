@@ -53,6 +53,22 @@ $ docker compose -f docker-compose.*.yml up
 
 ## ⚙️ Customising Your Deployment
 
+### Building Locally
+
+All FlintML codefiles live under `src/`. You will see two sets of Compose, env and worker config files - `build` and `release-template`. `release-template` files are used to define the release tarball and thus can be ignored for local development. 
+
+To build locally, you must firstly build the base worker image so it exists in your local Docker registry:
+
+```bash
+docker build -f ./src/worker-base/Dockerfile -t worker-base:latest ./src/
+```
+
+Then you can spin up the platform by using the `build` files:
+
+```bash
+docker compose -f ./src/docker-compose.build.yml --env-file ./src/.env.build up
+```
+
 ### Data Storage
 
 The `docker-compose.*.yml` in each FlintML release contains the named Docker volumes `storage_data`, `storage_meta` and `experiment_data`. If you wish to specify custom volumes, you should create an override `docker-compose.override.yml` and compose it when spinning up flint. See the [docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/).

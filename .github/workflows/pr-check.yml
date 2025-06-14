@@ -76,16 +76,12 @@ jobs:
             exit 1
           fi
 
-      - name: Smoke-test docker-compose stack
+      - name: Smoke-test local build
         if: steps.src.outputs.changed != ''
         run: |
           pushd src
-          cp .env.example .env
-          docker compose -f docker-compose.build.yml up -d
-          timeout 60 sh -c '
-            until curl -sf http://localhost:8701/; do
-              sleep 1
-            done
-          '
-          docker compose -f docker-compose.build.yml down
+          docker build -f worker-base/Dockerfile -t worker-base:latest .
+          docker compose -f docker-compose.build.yml --env-file .env.build up -d
+          timeout 60 sh -c 'until curl -sf http://localhost:8701/; do sleep 1; done'
+          docker compose -f docker-compose.build.yml --env-file .env.build down
           popd
