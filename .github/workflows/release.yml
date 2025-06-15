@@ -20,16 +20,16 @@ jobs:
         run: |
           OLD=$(git show "${{ github.event.before }}:VERSION" 2>/dev/null || echo "")
           NEW=$(cat VERSION)
-          # if manual dispatch, force run_detect=true
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "::set-output name=run_detect::true"
-          elif [ "$OLD" != "$NEW" ]; then
-            echo "::set-output name=old::$OLD"
-            echo "::set-output name=new::$NEW"
+
+          # always export both
+          echo "::set-output name=old::$OLD"
+          echo "::set-output name=new::$NEW"
+
+          # run if manual dispatch OR bumped
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] \
+             || [ "$OLD" != "$NEW" ]; then
             echo "::set-output name=run_detect::true"
           else
-            echo "::set-output name=old::$OLD"
-            echo "::set-output name=new::$NEW"
             echo "::set-output name=run_detect::false"
           fi
 
