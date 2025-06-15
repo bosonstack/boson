@@ -34,7 +34,7 @@ FlintML enables teams to deliver end-to-end ML quickly and with minimal infrastr
 
 ## 🔎 Demo
 
-To get a sense of what you can do with FlintML, check out the [Instacart Kaggle example](docs/examples/instacart/walkthrough.html).
+To get a sense of what you can do with FlintML, check out the [Instacart Kaggle example](examples/instacart.ipynb).
 
 ## 🚀 Quickstart
 
