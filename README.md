@@ -118,6 +118,8 @@ Then you can spin up the platform by using the `build` files:
 docker compose -f ./src/docker-compose.build.yml --env-file ./src/.env.build up
 ```
 
+**Note:** If you update the dependencies of any packages in `src/common-lib`, make sure you run `./update-common-lib.sh` to update dependant Poetry lock files.
+
 ## 🎯 Roadmap
 
 1. Workflows (in-progress)
