@@ -3,7 +3,7 @@
   <img width="500px" src="docs/_assets/logo-text.png" alt="FlintML Logo Text" /><br/>
 
   <!-- Badges, all inside the same HTML block -->
-  <img src="https://img.shields.io/badge/version-v0.1.22-cf051c" alt="Version 0.1.22" />
+  <img src="https://img.shields.io/badge/version-v0.1.23-cf051c" alt="Version 0.1.23" />
   <img src="https://img.shields.io/badge/license-BSL_1.1-blue" alt="License BSL 1.1" />
 
   </br>
@@ -34,7 +34,7 @@ FlintML enables teams to deliver end-to-end ML quickly and with minimal infrastr
 
 ## 🔎 Demo
 
-To get a sense of what you can do with FlintML, check out the [Instacart Kaggle example](docs/example-instacart.md).
+To get a sense of what you can do with FlintML, check out the [Instacart Kaggle example](docs/examples/instacart/walkthrough.html).
 
 ## 🚀 Quickstart
 
@@ -47,6 +47,8 @@ $ cd flintml-*
 $ docker compose -f docker-compose.*.yml up
 # FlintML will become available at localhost:8701
 ```
+
+The first time you execute code may take a couple of minutes while FlintML downloads the relevant worker image.
 
 ### [Concepts](docs/concepts.md)
 ### [Reference](docs/reference.md)
