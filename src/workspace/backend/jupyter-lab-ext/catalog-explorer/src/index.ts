@@ -37,6 +37,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
     widget.title.caption = 'Catalog Explorer';
     widget.addClass('catalog-explorer-panel');
 
+    widget.node.style.minWidth = '325px';
+    widget.node.style.width    = '325px';
+
     const layout = new PanelLayout();
     layout.addWidget(content);
     widget.layout = layout;
