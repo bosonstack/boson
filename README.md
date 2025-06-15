@@ -3,7 +3,7 @@
   <img width="500px" src="docs/_assets/logo-text.png" alt="FlintML Logo Text" /><br/>
 
   <!-- Badges, all inside the same HTML block -->
-  <img src="https://img.shields.io/badge/version-v0.1.20-cf051c" alt="Version 0.1.20" />
+  <img src="https://img.shields.io/badge/version-v0.1.21-cf051c" alt="Version 0.1.21" />
   <img src="https://img.shields.io/badge/license-BSL_1.1-blue" alt="License BSL 1.1" />
 
   </br>
@@ -117,6 +117,8 @@ Then you can spin up the platform by using the `build` files:
 ```bash
 docker compose -f ./src/docker-compose.build.yml --env-file ./src/.env.build up
 ```
+
+**Note:** If you update the dependencies of any packages in `src/common-lib`, make sure you run `./update-common-lib.sh` to update dependant Poetry lock files.
 
 ## 🎯 Roadmap
 

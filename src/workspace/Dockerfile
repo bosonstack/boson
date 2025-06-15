@@ -67,6 +67,7 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages/jupyter_server/stati
 COPY --from=builder /usr/local/share/jupyter/kernels /usr/local/share/jupyter/kernels
 COPY --from=builder /usr/local/etc/jupyter /usr/local/etc/jupyter
 COPY --from=builder /app/workspace /app/workspace
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 RUN mkdir -p /srv/workspace
 
