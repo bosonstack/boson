@@ -29,7 +29,7 @@ FlintML enables teams to deliver end-to-end ML quickly and with minimal infrastr
 - <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Workflow orchestration via [Dagster](https://github.com/dagster-io/dagster) (WIP\*)** – load data, retrain models, and run inference on a schedule.
 
 **Platform & Deployment:**
-- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Flexible and reproducible compute** – switch between compute *drivers* to fit your use case, or write your own.
+- <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Flexible and reproducible compute** – switch between compute [drivers](docs/concepts.md#drivers) to fit your use case, or write your own.
 - <img src="docs/_assets/red-check.png" width="16" alt="✔"> **Composable, declarative infrastructure** – have full control over your Docker Compose deployment.
 
 ## 🔎 Demo
