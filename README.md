@@ -1,6 +1,6 @@
 <div align="center">
   <!-- Logo -->
-  <img width="500px" src="docs/_assets/logo-text.png" alt="FlintML Logo Text" /><br/>
+  <img width="60%" src="docs/_assets/logo-text.png" alt="FlintML Logo Text" /><br/>
 
   <!-- Badges, all inside the same HTML block -->
   <img src="https://img.shields.io/badge/version-v0.1.23-cf051c" alt="Version 0.1.23" />
@@ -13,6 +13,9 @@
 
 **FlintML** is the all-in-one, self-hosted ML platform for real-world teams. Simple, flexible, fast to deploy, and built for people solving actual problems—not chasing hype.
 
+<div align="center">
+  <img width="100%" src="docs/_assets/screenshot.png" alt="FlintML Logo Text" /><br/>
+</div>
 
 ## <img src="docs/_assets/logo.png" alt="FlintML Logo" width="17"/> Why FlintML?
 
