@@ -56,7 +56,7 @@ FlintML will become available at `localhost:8701`. The first time you execute co
 
 ### Data Storage
 
-The `docker-compose.*.yml` in each FlintML release contains the named Docker volumes `storage_data`, `storage_meta` and `experiment_data`. If you wish to specify custom volumes, you should create an override `docker-compose.override.yml` and compose it when spinning up flint. See the [docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/).
+The `docker-compose.*.yml` in each FlintML release contains the named Docker volumes `storage_data`, `storage_meta`, `experiment_data` and `workspace_data`. If you wish to specify custom volumes, you should create an override `docker-compose.override.yml` and compose it when spinning up flint. See the [docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/).
 
 ### Environment Variables
 

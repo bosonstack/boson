@@ -1,7 +1,10 @@
 # Changelog
 
+## [0.1.24] - ...
+- Added named volume for `workspace`.
+
 ## [0.1.23] - ...
-- First distributed release of FlintML 
+- First distributed release of FlintML. 
 
 ...
 

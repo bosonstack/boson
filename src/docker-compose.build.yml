@@ -64,6 +64,8 @@ services:
     depends_on:
       - catalog-explorer
       - experiment-tracker
+    volumes:
+      - workspace_data:/srv/workspace
     restart: always
 
   reverse-proxy:
@@ -83,3 +85,4 @@ volumes:
   storage_data:
   storage_meta:
   experiment_data:
+  workspace_data:
