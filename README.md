@@ -17,6 +17,16 @@
   <img width="100%" src="docs/_assets/screenshot.png" alt="FlintML Logo Text" /><br/>
 </div>
 
+## 🚀 Quickstart
+
+```bash
+curl -sL https://raw.githubusercontent.com/flintml/flint/main/flintml-quickstart.sh | bash
+```
+
+FlintML will become available at `localhost:8701`. The first time you execute code may take a couple of minutes while FlintML downloads the relevant worker image.
+
+**Note:** ensure Docker is installed and you are on a Linux (or WSL) machine (ARM currently not supported.)
+
 ## <img src="docs/_assets/logo.png" alt="FlintML Logo" width="17"/> Why FlintML?
 
 FlintML enables teams to deliver end-to-end ML quickly and with minimal infrastructure overhead. With FlintML, all key components of the MLOps process are centralised, providing an integrated and developer-centric experience.
@@ -37,20 +47,7 @@ FlintML enables teams to deliver end-to-end ML quickly and with minimal infrastr
 
 ## 🔎 Demo
 
-To get a sense of what you can do with FlintML, check out the [Instacart Kaggle example](examples/instacart.ipynb).
-
-## 🚀 Quickstart
-
-**Note:** ensure Docker is installed and you are on a Linux (or WSL) machine (ARM currently not supported.)
-
-```bash
-curl -sL https://raw.githubusercontent.com/flintml/flint/main/flintml-quickstart.sh | bash
-```
-
-FlintML will become available at `localhost:8701`. The first time you execute code may take a couple of minutes while FlintML downloads the relevant worker image.
-
-### [Concepts](docs/concepts.md)
-### [Reference](docs/reference.md)
+To get a sense of what you can do with FlintML, check out the [Instacart Kaggle example](examples/instacart.ipynb). You can also read about FlintML [concepts](docs/concepts.md) and check out the [reference](docs/reference.md) to learn more about the platform's capabilities
 
 ## ⚙️ Customising Your Deployment
 
