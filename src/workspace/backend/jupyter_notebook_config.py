@@ -46,4 +46,4 @@ c.LanguageServerManager.language_servers = {
 
 c.KernelSpecManager.ensure_native_kernel = False
 
-c.ServerApp.root_dir = "/srv/workspace"
+c.ServerApp.root_dir = "/mnt/metastore/workspace"

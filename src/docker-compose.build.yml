@@ -54,14 +54,12 @@ services:
     restart: always
 
   workspace:
-    <<: *storage-creds
+    <<: [*storage-creds, *s3fs]
     build: 
       context: .
       dockerfile: ./workspace/Dockerfile
     depends_on:
       - catalog-explorer
-    volumes:
-      - workspace_data:/srv/workspace
     restart: always
 
   reverse-proxy:
@@ -84,4 +82,3 @@ services:
 volumes:
   storage_data:
   storage_meta:
-  workspace_data:
