@@ -1,15 +1,17 @@
 FROM aimstack/aim
 
 ENV FLINT_CONTROL_PLANE_ENDPOINT=http://reverse-proxy
+ENV META_PATH=/meta/juicefs/juice_meta.db
 
 WORKDIR /app
 
 COPY ./experiment-server ./experiment-server
 
-# Configure S3FS
+# Configure JuiceFS
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      s3fs fuse libfuse2 && \
+        fuse libfuse2 curl ca-certificates xz-utils tar && \
+    curl -fsSL https://d.juicefs.com/install | sh - && \
     rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /mnt/metastore
 

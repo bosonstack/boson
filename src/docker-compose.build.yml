@@ -39,6 +39,8 @@ services:
     depends_on:
       storage:
         condition: service_healthy
+    volumes:
+      - storage_meta:/meta
     restart: always
 
   ### --- FRONTEND SERVICES ---

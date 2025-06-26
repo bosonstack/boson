@@ -1,36 +1,43 @@
 #!/bin/bash
 set -e
 
-# Configure S3FS
-echo ${STORAGE_USER}:${STORAGE_PASSWORD} > /root/.passwd-s3fs
-chmod 600 /root/.passwd-s3fs
+# Configure JucieFS
+export AWS_ACCESS_KEY_ID="${STORAGE_USER}"
+export AWS_SECRET_ACCESS_KEY="${STORAGE_PASSWORD}"
+export AWS_REGION=us-east-1
+export AWS_S3_FORCE_PATH_STYLE=1
 
-s3fs metastore /mnt/metastore \
-     -o url=http://storage:8000 \
-     -o use_path_request_style \
-     -o allow_other \
-     -o passwd_file=/root/.passwd-s3fs \
-     -o uid="$(id -u)" \
-     -o gid="$(id -g)" \
-     -o nonempty \
-     -o curldbg -o dbglevel=info \
-     -o logfile=/var/log/s3fs-metastore.log
+mkdir -p "$(dirname "$META_PATH")"
 
-mkdir -p /mnt/metastore/experiments
+META_URL="sqlite3://$META_PATH"
+
+juicefs format \
+  --storage s3 \
+  --bucket http://storage:8000/metastore \
+  "$META_URL"  experiment
+
+mkdir -p /mnt/metastore/experiment
+juicefs mount "$META_URL" /mnt/metastore/experiment -d
+
+echo "Checking if Aim repo exists"
 
 # Initialise repo if new
-if [[ ! -d /mnt/metastore/experiments/.aim ]]; then
-  aim init --repo /mnt/metastore/experiments
+if [[ ! -d /mnt/metastore/experiment/.aim ]]; then
+  echo "Aim repo does not exist creating a new one"
+  aim init --repo /mnt/metastore/experiment
 fi
 
+echo "Starting Aim"
+
+# Start Aim
 aim server  \
-    --repo /mnt/metastore/experiments \
+    --repo /mnt/metastore/experiment \
     --host 0.0.0.0 --port 53800 &
 
 server_pid=$!
 
 aim up \
-    --repo /mnt/metastore/experiments \
+    --repo /mnt/metastore/experiment \
     --host 0.0.0.0 --port 43800 \
     --base-path /experiment-tracker \
     --log-level debug
