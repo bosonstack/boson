@@ -71,12 +71,18 @@ services:
   reverse-proxy:
     build: ./reverse-proxy
     depends_on:
-      - storage
-      - workspace
-      - compute-manager
-      - catalog-explorer
-      - experiment-server
-      - experiment-tracker
+      storage:
+        condition: service_started
+      workspace:
+        condition: service_started
+      compute-manager:
+        condition: service_started
+      experiment-server:
+        condition: service_started
+      catalog-explorer:
+        condition: service_started
+      experiment-tracker:
+        condition: service_started
     ports:
       - "${FLINT_PORT:-8701}:80"
     restart: always

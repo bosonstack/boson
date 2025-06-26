@@ -15,7 +15,7 @@ RUN poetry config virtualenvs.create false && \
 
 FROM python:3.12-slim AS runtime
 
-ENV FLINT_CONTROL_PLANE_ENDPOINT=http://reverse-proxy
+ENV STORAGE_ENDPOINT=http://storage:8000
 WORKDIR /app
 
 # Inject dependencies

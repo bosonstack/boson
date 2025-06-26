@@ -7,15 +7,15 @@ from aim import Text
 from .catalog import parse_item_path, build_item_path
 from .fs import open_object
 
-FLINT_CONTROL_PLANE_ENDPOINT = os.getenv("FLINT_CONTROL_PLANE_ENDPOINT")
+EXPERIMENT_ENDPOINT = os.getenv("EXPERIMENT_ENDPOINT")
 
 def new_run(*args, **kwargs) -> Run:
     """Creates an Aim Run at default repository location."""
 
-    parsed_endpoint = urlparse(FLINT_CONTROL_PLANE_ENDPOINT)
+    parsed_endpoint = urlparse(EXPERIMENT_ENDPOINT)
     endpoint_no_scheme = urlunparse(('',) + parsed_endpoint[1:])
     
-    return Run(repo=f"aim:{endpoint_no_scheme}/experiment-server", *args, **kwargs)
+    return Run(repo=f"aim:{endpoint_no_scheme}", *args, **kwargs)
 
 def log_artifact(
     run: Run,

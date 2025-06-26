@@ -10,12 +10,12 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
-FLINT_CONTROL_PLANE_ENDPOINT = os.getenv("FLINT_CONTROL_PLANE_ENDPOINT")
+COMPUTE_MANAGER_ENDPOINT = os.getenv("COMPUTE_MANAGER_ENDPOINT")
 CHECK_INTERVAL_SECONDS = 10
 
 def is_control_plane_alive():
     try:
-        r = requests.get(f"{FLINT_CONTROL_PLANE_ENDPOINT}/compute-manager/status", timeout=5)
+        r = requests.get(f"{COMPUTE_MANAGER_ENDPOINT}/status", timeout=5)
         alive = r.status_code == 200
         if not alive:
             logging.warning(f"Received status code {r.status_code}")

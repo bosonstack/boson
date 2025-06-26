@@ -1,7 +1,5 @@
 FROM aimstack/aim
 
-ENV FLINT_CONTROL_PLANE_ENDPOINT=http://reverse-proxy
-
 WORKDIR /app
 
 COPY ./experiment-server ./experiment-server
