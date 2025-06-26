@@ -26,11 +26,10 @@ def _get_storage_credentials() -> Dict[str, str]:
         "key": os.getenv("STORAGE_USER"),
         "secret": os.getenv("STORAGE_PASSWORD"),
         "client_kwargs": {
-            "endpoint_url": os.getenv("FLINT_CONTROL_PLANE_ENDPOINT")
+            "endpoint_url": os.getenv("STORAGE_ENDPOINT")
         }
     }
 STORAGE_CREDENTIALS = _get_storage_credentials()
-
 def _get_polars_storage_options() -> Dict[str, str]:
     return {
         "AWS_REGION": "us-east-1",

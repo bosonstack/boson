@@ -81,7 +81,9 @@ class LocalDriver(Driver):
                 network=network_name,
                 labels={"flint.ephemeral": "true"},
                 environment={
-                    "FLINT_CONTROL_PLANE_ENDPOINT": "http://reverse-proxy",
+                    "COMPUTE_MANAGER_ENDPOINT": "http://reverse-proxy/compute-manager",
+                    "EXPERIMENT_ENDPOINT": "http://reverse-proxy/experiment-server",
+                    "STORAGE_ENDPOINT": "http://reverse-proxy",
                     "STORAGE_USER": os.environ.get("STORAGE_USER"),
                     "STORAGE_PASSWORD": os.environ.get("STORAGE_PASSWORD")
                 },

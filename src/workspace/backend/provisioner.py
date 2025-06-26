@@ -17,17 +17,17 @@ class RemoteContainerProvisioner(KernelProvisionerBase):
 
     async def pre_launch(self, **kwargs):
         if not self._container_attached:
-            # Step 1: Allocate container
-            resp = requests.post("http://reverse-proxy/compute-manager/allocate", json={
+            # Allocate container
+            resp = requests.post("http://compute-manager:8000/allocate", json={
                 "caller": "jupyterlab"
             })
             resp.raise_for_status()
             self.container_id = resp.json()["container_id"]
 
-            # Step 2: Poll until container is ready
+            # Poll until container is ready
             while True:
                 await asyncio.sleep(1)
-                info = requests.get(f"http://reverse-proxy/compute-manager/container/{self.container_id}").json()
+                info = requests.get(f"http://compute-manager:8000/container/{self.container_id}").json()
                 ctx = info["container_context"]
                 if ctx["status"] == "RUNNING":
                     break
@@ -57,7 +57,7 @@ class RemoteContainerProvisioner(KernelProvisionerBase):
         return self.connection_info
 
     async def cleanup(self, restart=False):
-        requests.delete(f"http://reverse-proxy/compute-manager/container/{self.container_id}")
+        requests.delete(f"http://compute-manager:8000/container/{self.container_id}")
         self._container_attached = False
 
     async def kill(self, restart=False):
@@ -67,7 +67,7 @@ class RemoteContainerProvisioner(KernelProvisionerBase):
         await self.cleanup(restart=restart)
 
     async def poll(self):
-        r = requests.get(f"http://reverse-proxy/compute-manager/container/{self.container_id}")
+        r = requests.get(f"http://compute-manager:8000/container/{self.container_id}")
         status = r.json()["container_context"]["status"]
 
         if status == "COMPLETED" or status == "STOPPED":
