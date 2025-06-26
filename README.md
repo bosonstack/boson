@@ -3,7 +3,7 @@
   <img width="60%" src="docs/_assets/logo-text.png" alt="FlintML Logo Text" /><br/>
 
   <!-- Badges, all inside the same HTML block -->
-  <img src="https://img.shields.io/badge/version-v0.1.25-cf051c" alt="Version 0.1.25" />
+  <img src="https://img.shields.io/badge/version-v0.2.0-cf051c" alt="Version 0.2.0" />
   <img src="https://img.shields.io/badge/license-BSL_1.1-blue" alt="License BSL 1.1" />
 
   </br>
@@ -53,7 +53,7 @@ To get a sense of what you can do with FlintML, check out the [Instacart Kaggle 
 
 ### Data Storage
 
-The `docker-compose.*.yml` in each FlintML release contains the named Docker volumes `storage_data`, `storage_meta`, `experiment_data` and `workspace_data`. If you wish to specify custom volumes, you should create an override `docker-compose.override.yml` and compose it when spinning up flint. See the [docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/).
+FlintML ships with its own [Storage](docs/concepts.md#flint-control-plane) service that depends on the mounts, `storage_data` and `storage_meta`. If you wish to specify custom volumes, you should create an override `docker-compose.override.yml` and compose it when spinning up flint. See the [docs](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/).
 
 ### Environment Variables
 

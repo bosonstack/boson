@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nano \
     procps \
     net-tools \
+    s3fs \
+    fuse \
+    libfuse2 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -28,3 +31,10 @@ COPY ./worker-base/startup/watchdog.py /root/watchdog.py
 
 RUN mkdir -p /root/.ipython/profile_default/startup
 COPY ./worker-base/startup/00-flint-init.py /root/.ipython/profile_default/startup/00-flint-init.py
+
+# Create S3FS mount point
+RUN mkdir /mnt/metastore
+
+RUN mv /app/worker-base/startup/entrypoint.sh /root/entrypoint.sh
+RUN chmod +x /root/entrypoint.sh
+ENTRYPOINT ["/root/entrypoint.sh"]

@@ -61,11 +61,6 @@ jobs:
             out="${out} catalog-explorer"
           fi
 
-          # experiment-tracker
-          if git diff --name-only $BASE $HEAD | grep -q '^src/experiment-tracker/'; then
-            out="${out} experiment-tracker"
-          fi
-
           # workspace
           if git diff --name-only $BASE $HEAD | grep -q '^src/workspace/'; then
             out="${out} workspace"
@@ -109,7 +104,7 @@ jobs:
           REG=flintml
           OLD=${{ steps.check_version.outputs.old }}
           NEW=${{ steps.check_version.outputs.new }}
-          all=( storage compute-manager experiment-server catalog-explorer experiment-tracker workspace reverse-proxy worker-base )
+          all=( storage compute-manager experiment-server catalog-explorer workspace reverse-proxy worker-base )
           read -r -a changed <<< "${{ steps.detect.outputs.services }}"
 
           for svc in "${all[@]}"; do
@@ -142,10 +137,6 @@ jobs:
                 catalog-explorer)
                   CTX="src"
                   DOCKERFILE="src/catalog-explorer/Dockerfile"
-                  ;;
-                experiment-tracker)
-                  CTX="src/experiment-tracker"
-                  DOCKERFILE="src/experiment-tracker/Dockerfile"
                   ;;
                 workspace)
                   CTX="src"

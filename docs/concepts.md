@@ -4,14 +4,14 @@
 
 FlintML contains all the necessary components to enable end-to-end machine learning workloads. It accomplishes this by running several Docker Compose services, constituting the control plane. The control plane network is managed by an internal [nginx](https://github.com/nginx/nginx) container. The key services are:
 
-- **Storage:** Powered by [Zenko CloudServer](https://github.com/scality/cloudserver), the Storage service houses the *data layer* upon which the [Flint Catalog](#flint-catalog) is built.
-- **Workspace:** The Workspace service serves the FlintML user interface (JupyterLab skin + custom extensions.) A custom [KernelProvisioner](https://jupyter-client.readthedocs.io/en/latest/provisioning.html) communicates with the Compute Manager service.
+- **Storage:** Powered by [Zenko CloudServer](https://github.com/scality/cloudserver), the Storage service comprises the *data layer* upon which the [Flint Catalog](#flint-catalog) is built. This data layer is referred to as the Flint Metastore. Data is stored per the `storage_data` and `storage_meta` Docker volumes.
+- **Workspace:** The Workspace service serves the FlintML user interface (JupyterLab skin + custom extensions.) A custom [KernelProvisioner](https://jupyter-client.readthedocs.io/en/latest/provisioning.html) communicates with the Compute Manager service. Mounts the Flint Metastore using [s3fs](https://github.com/s3fs-fuse/s3fs-fuse) and uses this mount as the JupyterLab working directory.
 - **Compute Manager:** The Compute Manager orchestrates and controls all [Worker Containers](#worker-containers) via a configurable *driver*. All requests to start and stop Worker Containers are handled by this service.
-- **Experiment Server:** Integrated with [Aim](https://github.com/aimhubio/aim), the Experiment Server acts as the controller for all ML experiments. It does NOT use the Storage service because it requires a filesystem backend. Thus, an `experiment_data` volume is required. Artifacts are referenced in experiment runs but stored as Objects in the Flint Catalog.
+- **Experiment Server:** Integrated with [Aim](https://github.com/aimhubio/aim), the Experiment Server acts as the controller for all ML experiments and serves the Aim UI. Metrics live in the Flint Metastore as chunks using [JuiceFS](https://juicefs.com/en/). JuiceFS maintains its metadata with a SQLite database inside the `storage_meta` volume, coupling the lifetime of metrics metadata to the liftetime of metrics data.
 
 ## Flint Catalog
 
-The Flint Catalog is a novel and simplified approach to a data catalog. It provides a logical repository that sits on top of the physical locations of files in Storage. This enables key capabilities around governance, search, discovery, lineage and reusability. FlintML will continue to deploy new such capabilities throughout development.
+The Flint Catalog is a novel and simplified approach to a data catalog. It provides a logical repository that sits on top of the physical locations of files in the Flint Metastore. This enables key capabilities around governance, search, discovery, lineage and reusability. FlintML will continue to deploy new such capabilities throughout development. **The Flint Catalog does not govern workspace files or metrics.**
 
 The Flint Catalog defines an Item as logically being a Table (i.e. Delta), or an Object (incl. Artifact sub-type.) All Items are unified within the catalog and considered first-class data-citizens. Rather than logically grouping Items by way of a hierarchical structure like `<catalog>.<schema>.<entity>` as used in the Unity Catalog, the Flint Catalog allows for full flexibility through the use of tags.
 
@@ -23,7 +23,7 @@ Importantly, Items are identified by their URI; an Item's URI is a url encoding 
 
 FlintML's Control Plane does not execute user code (i.e. development notebooks and workflows.) This work gets delegated to Worker Containers. A Worker Container is a Docker container installed with the `flintml/worker-base` image (directly or indirectly by a derivative image.) 
 
-Each Worker Container runs a single Jupyter kernel that communicates with the Workspace, Storage and Experiment Server services. **Therefore, it is crucial that the host running Worker Containers has networking to the host of the Control Plane.**
+Each Worker Container runs a single Jupyter kernel that communicates with the Workspace, Storage and Experiment Server services. **Therefore, it is crucial that the host running Worker Containers has networking to the host of the Control Plane.** Each Worker Container also mounts Workspace files to its working directory. This enables you to, for example, execute notebooks within a notebook: `%run ./root-level-notebook.ipynb`.
 
 Worker Containers are instantiated by the [Driver](#drivers) configured for use by the Compute Manager service.
 

@@ -2,6 +2,7 @@ import asyncio
 import docker
 from docker.models.containers import Container
 from docker.errors import NotFound, APIError
+from docker.types import LogConfig
 from typing import Dict
 import os
 from typing import Tuple, Optional
@@ -73,11 +74,10 @@ class LocalDriver(Driver):
 
             # Launch the container (do NOT start ipykernel yet)
             container = await asyncio.to_thread(
-                self._docker.containers.run,
+                self._docker.containers.create,
                 image=self.worker_image,
-                name=f"flint__{project_name}__worker__{ctx.id}",
-                detach=True,
                 auto_remove=True,
+                name=f"flint__{project_name}__worker__{ctx.id}",
                 network=network_name,
                 labels={"flint.ephemeral": "true"},
                 environment={
@@ -87,20 +87,19 @@ class LocalDriver(Driver):
                     "STORAGE_USER": os.environ.get("STORAGE_USER"),
                     "STORAGE_PASSWORD": os.environ.get("STORAGE_PASSWORD")
                 },
-                command=["sh", "-c", "poetry run python /root/watchdog.py >> /tmp/watchdog.log 2>&1"],
                 tty=True,
                 stdin_open=True,
                 volumes=volumes_dict,
+                devices=["/dev/fuse:/dev/fuse"],
+                cap_add=["SYS_ADMIN"],
+                security_opt=["apparmor:unconfined"],
+                log_config=LogConfig(type="local")
             )
 
             # Copy connection.json into container
             await asyncio.to_thread(container.put_archive, "/tmp", tarstream.read())
 
-            # Run ipykernel inside the container
-            run_kernel_cmd = [
-                "poetry", "run", "python", "-m", "ipykernel_launcher", "-f", "/tmp/connection.json"
-            ]
-            await asyncio.to_thread(container.exec_run, run_kernel_cmd, detach=True)
+            await asyncio.to_thread(container.start)
 
             # Update container context
             await asyncio.to_thread(container.reload)

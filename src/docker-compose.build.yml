@@ -3,6 +3,14 @@ x-storage-creds: &storage-creds
     STORAGE_USER: ${STORAGE_USER:-admin}
     STORAGE_PASSWORD: ${STORAGE_PASSWORD:-password}
 
+x-s3fs: &s3fs
+  devices:
+    - /dev/fuse:/dev/fuse
+  cap_add:
+    - SYS_ADMIN
+  security_opt:
+    - apparmor:unconfined
+
 services:
 
   # --- BACKEND SERVICES ---
@@ -24,7 +32,7 @@ services:
     restart: always
 
   experiment-server:
-    <<: *storage-creds
+    <<: [*storage-creds, *s3fs]
     build: 
       context: .
       dockerfile: ./experiment-server/Dockerfile
@@ -32,7 +40,7 @@ services:
       storage:
         condition: service_healthy
     volumes:
-      - experiment_data:/repo
+      - storage_meta:/meta
     restart: always
 
   ### --- FRONTEND SERVICES ---
@@ -46,26 +54,14 @@ services:
       storage:
         condition: service_healthy
     restart: always
-    
-  experiment-tracker:
-    build: ./experiment-tracker
-    depends_on:
-      experiment-server:
-        condition: service_healthy
-    volumes:
-      - experiment_data:/repo
-    restart: always
 
   workspace:
-    <<: *storage-creds
+    <<: [*storage-creds, *s3fs]
     build: 
       context: .
       dockerfile: ./workspace/Dockerfile
     depends_on:
       - catalog-explorer
-      - experiment-tracker
-    volumes:
-      - workspace_data:/srv/workspace
     restart: always
 
   reverse-proxy:
@@ -81,8 +77,6 @@ services:
         condition: service_started
       catalog-explorer:
         condition: service_started
-      experiment-tracker:
-        condition: service_started
     ports:
       - "${FLINT_PORT:-8701}:80"
     restart: always
@@ -90,5 +84,3 @@ services:
 volumes:
   storage_data:
   storage_meta:
-  experiment_data:
-  workspace_data:

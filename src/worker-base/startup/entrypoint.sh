@@ -1,12 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-# Configure S3FS
+# # Configure S3FS
 echo ${STORAGE_USER}:${STORAGE_PASSWORD} > /root/.passwd-s3fs
 chmod 600 /root/.passwd-s3fs
-
 s3fs metastore /mnt/metastore \
-     -o url=http://storage:8000 \
+     -o url="${STORAGE_ENDPOINT}" \
      -o use_path_request_style \
      -o allow_other \
      -o passwd_file=/root/.passwd-s3fs \
@@ -17,10 +16,10 @@ s3fs metastore /mnt/metastore \
      -o logfile=/var/log/s3fs-metastore.log
 mkdir -p /mnt/metastore/workspace
 
-exec python -m jupyter_server \
-     --config=/root/.jupyter/jupyter_notebook_config.py \
-     --ip=0.0.0.0 \
-     --port=8888 \
-     --no-browser \
-     --allow-root \
-     --debug
+cd /mnt/metastore/workspace
+python -m ipykernel_launcher -f /tmp/connection.json &
+KERNEL_PID=$!
+
+trap 'kill -TERM $KERNEL_PID 2>/dev/null' TERM INT
+
+exec python /root/watchdog.py --kernel-pid "$KERNEL_PID"

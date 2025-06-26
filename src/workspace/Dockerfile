@@ -69,7 +69,12 @@ COPY --from=builder /usr/local/etc/jupyter /usr/local/etc/jupyter
 COPY --from=builder /app/workspace /app/workspace
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-RUN mkdir -p /srv/workspace
+# Configure S3FS
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      s3fs fuse libfuse2 && \
+    rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /mnt/metastore
 
 COPY --from=builder /app/workspace/entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh
