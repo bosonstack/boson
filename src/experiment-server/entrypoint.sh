@@ -39,5 +39,4 @@ server_pid=$!
 aim up \
     --repo /mnt/metastore/experiment \
     --host 0.0.0.0 --port 43800 \
-    --base-path /experiment-tracker \
-    --log-level debug
+    --base-path /experiment-tracker

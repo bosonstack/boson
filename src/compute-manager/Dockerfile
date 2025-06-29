@@ -12,6 +12,11 @@ RUN poetry config virtualenvs.create false && \
 
 FROM python:3.12-slim AS runtime
 
+# install curl
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Inject dependencies

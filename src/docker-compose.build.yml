@@ -61,7 +61,12 @@ services:
       context: .
       dockerfile: ./workspace/Dockerfile
     depends_on:
-      - catalog-explorer
+      storage:
+        condition: service_healthy
+      compute-manager:
+        condition: service_healthy
+      catalog-explorer:
+        condition: service_started
     restart: always
 
   reverse-proxy:

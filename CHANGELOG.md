@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.1]
+- Misc hot fixes
+- `LocalDriver` pull image if it doesn't exist locally.
+- Fix Compute Manager healthcheck
+
 ## [0.2.0]
 - The objective of this release is to support mounting the Flint Metastore as a POSIX-like filesystem. Consequently, reducing the number of Docker volumes required by the Control Plane.
 - The Experiment Tracker has been collapsed into the Experiment Server for simplicity and improved robustness around `inotify` events.

@@ -1,7 +1,7 @@
 import asyncio
 import docker
 from docker.models.containers import Container
-from docker.errors import NotFound, APIError
+from docker.errors import ImageNotFound, APIError
 from docker.types import LogConfig
 from typing import Dict
 import os
@@ -25,8 +25,30 @@ class LocalDriver(Driver):
         super().__init__(config)
         self._docker: docker.DockerClient = docker.from_env()
 
+        self._ensure_worker_image()
+
         self._containers: Dict[str, Tuple[ContainerContext, Optional[Container]]] = {}
         self._watch_tasks: Dict[str, asyncio.Task] = {}
+
+    def _ensure_worker_image(self) -> None:
+        """
+        Check for self.worker_image in the local cache, and pull from Docker Hub
+        if it's not found.
+        """
+        try:
+            self._docker.images.get(self.worker_image)
+            logging.info(f"Image {self.worker_image} already present, skipping pull.")
+        except ImageNotFound:
+            logging.info(f"Image {self.worker_image} not found locally, pulling…")
+            try:
+                self._docker.images.pull(self.worker_image)
+                logging.info(f"Successfully pulled {self.worker_image}.")
+            except APIError as e:
+                logging.error(f"Failed to pull {self.worker_image}: {e}")
+                raise e
+        except APIError as e:
+            logging.error(f"Docker error inspecting image {self.worker_image}: {e}")
+            raise e
 
     async def launch_container(self, ctx: ContainerContext) -> None:
         """Start a container and begin watching it for unexpected exits."""
